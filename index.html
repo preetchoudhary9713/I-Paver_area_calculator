@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- By_Preet_Choudhary -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Exact I-Paver Area Calculator</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --bg: #ecf0f1;
+            --card-bg: #ffffff;
+            --border: #bdc3c7;
+            --text-main: #333333;
+            --focus-ring: rgba(231, 76, 60, 0.2);
+        }
+        
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: clamp(10px, 3vw, 30px);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            margin-bottom: 20px;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 800px) {
+            .layout-grid {
+                grid-template-columns: 3fr 2fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 10px;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        .btn-calc {
+            width: 100%;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-calc:hover { background-color: #c0392b; }
+
+        .error-msg {
+            color: #e74c3c;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+            padding: 10px;
+            background: #fadbd8;
+            border-radius: 6px;
+        }
+
+        .results-box {
+            background-color: #e8f4f8;
+            border: 2px solid #b3d7e5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #b3d7e5;
+        }
+
+        .result-row:last-child { border-bottom: none; }
+
+        .result-label { font-weight: 600; font-size: 1rem; }
+        
+        .result-value {
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: var(--primary);
+        }
+
+        canvas {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            aspect-ratio: 1/1.2;
+            background-color: #f8f9fa;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .canvas-label {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Exact I-Paver Area Calculator</h1>
+    
+    <div class="layout-grid">
+        <!-- Input Form Section -->
+        <div class="card">
+            <h2>1. Core Dimensions (mm)</h2>
+            <div class="input-grid">
+                <div class="form-group">
+                    <label>Overall Length (L)</label>
+                    <input type="number" id="dim_L" value="200.2" step="any">
+                </div>
+                <div class="form-group">
+                    <label>Flange Width (W)</label>
+                    <input type="number" id="dim_W" value="166.1" step="any">
+                </div>
+                <div class="form-group">
+                    <label>Web Width (w)</label>
+                    <input type="number" id="dim_w" value="116.1" step="any">
+                </div>
+            </div>
+
+            <h2 style="margin-top: 25px;">2. Vertical Edge Lengths (mm)</h2>
+            <p style="font-size:0.85rem; color:#666; margin-top:-5px;">Measure the straight portions before the angle begins.</p>
+            <div class="input-grid">
+                <div class="form-group">
+                    <label>Flange Edge (h_f)</label>
+                    <input type="number" id="dim_hf" placeholder="e.g. 40" step="any">
+                </div>
+                <div class="form-group">
+                    <label>Web Edge (h_w)</label>
+                    <input type="number" id="dim_hw" placeholder="e.g. 60" step="any">
+                </div>
+            </div>
+
+            <h2 style="margin-top: 25px;">3. Top Face Chamfer (mm)</h2>
+            <div class="input-grid">
+                <div class="form-group">
+                    <label>Arris Width (aw)</label>
+                    <input type="number" id="dim_aw" value="5.5" step="any">
+                </div>
+            </div>
+
+            <div id="error-box" class="error-msg"></div>
+
+            <button class="btn-calc" onclick="calculateAndDraw()">Calculate Exact Area</button>
+
+            <!-- Results Data -->
+            <div id="results" class="results-box">
+                <div class="result-row">
+                    <span class="result-label">Lower Face (Plan Area):</span>
+                    <span class="result-value"><span id="res_bottom">0</span> mm&sup2;</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Upper Face (Wearing Area):</span>
+                    <span class="result-value" style="color:var(--accent);"><span id="res_top">0</span> mm&sup2;</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visualization Section -->
+        <div class="card">
+            <h2>Top-Down Geometry Profile</h2>
+            <canvas id="paverCanvas" width="400" height="480"></canvas>
+            <div class="canvas-label">
+                <span style="color:#bdc3c7; font-weight:bold;">Grey:</span> Bottom Print 
+                &nbsp;|&nbsp; 
+                <span style="color:#e74c3c; font-weight:bold;">Red:</span> Top Print
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Retrieves inputs and validates geometry constraints
+    function getInputs() {
+        return {
+            L: parseFloat(document.getElementById('dim_L').value),
+            W: parseFloat(document.getElementById('dim_W').value),
+            w: parseFloat(document.getElementById('dim_w').value),
+            hf: parseFloat(document.getElementById('dim_hf').value),
+            hw: parseFloat(document.getElementById('dim_hw').value),
+            aw: parseFloat(document.getElementById('dim_aw').value) || 0
+        };
+    }
+
+    // Advanced Geometry: Calculates the 1st quadrant coordinates of the paver.
+    // The paver is symmetric, so we calculate the top-right quadrant (6 points)
+    // Offset applies an inward Arris deduction to calculate the top face exactly.
+    function calculateQuadrantPolygon(L, W, w, hf, hw, offset) {
+        let pts = [];
+        const d = offset;
+
+        // Mathematical offset logic for normal bounds
+        const q1y = (L / 2) - d;
+        const q2x = (W / 2) - d;
+        
+        // Setup for the angled edge shift
+        const dx = (w / 2) - (W / 2);
+        const dy = (hw / 2) - ((L / 2) - hf);
+        
+        // If the straight edge was entered as 0, handle division by zero
+        if (dx === 0) return null; 
+
+        // Vector normal pointing inwards
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const nx = dy / len;
+        const ny = -dx / len;
+        
+        // Slope of angled edge
+        const m = dy / dx;
+        
+        // One shifted point on the angled line
+        const Sx = (W / 2) + d * nx;
+        const Sy = ((L / 2) - hf) + d * ny;
+
+        // Calculate intersection of shifted vertical lines with shifted angled line
+        const q3x = (W / 2) - d;
+        const q3y = m * (q3x - Sx) + Sy;
+
+        const q4x = (w / 2) - d;
+        const q4y = m * (q4x - Sx) + Sy;
+
+        // Points defining the top-right quadrant (Counter-clockwise from origin)
+        pts.push({ x: 0, y: 0 });                 // Center
+        pts.push({ x: (w / 2) - d, y: 0 });       // Waist center
+        pts.push({ x: q4x, y: q4y });             // Inner angle corner
+        pts.push({ x: q3x, y: q3y });             // Outer angle corner
+        pts.push({ x: q2x, y: q1y });             // Top right outer corner
+        pts.push({ x: 0, y: q1y });               // Top center
+
+        return pts;
+    }
+
+    // Shoelace formula for polygonal area
+    function calculatePolygonArea(pts) {
+        let area = 0;
+        for (let i = 0; i < pts.length; i++) {
+            let j = (i + 1) % pts.length;
+            area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+        }
+        return Math.abs(area / 2);
+    }
+
+    // Mirror a single quadrant to generate the full 12-point symmetrical paver path
+    function buildFullPolygon(quadPts) {
+        let fullPts = [];
+        // Top Right (skip 0,0)
+        for(let i=1; i<quadPts.length; i++) fullPts.push({x: quadPts[i].x, y: quadPts[i].y});
+        // Top Left
+        for(let i=quadPts.length-2; i>=1; i--) fullPts.push({x: -quadPts[i].x, y: quadPts[i].y});
+        // Bottom Left
+        for(let i=1; i<quadPts.length; i++) fullPts.push({x: -quadPts[i].x, y: -quadPts[i].y});
+        // Bottom Right
+        for(let i=quadPts.length-2; i>=1; i--) fullPts.push({x: quadPts[i].x, y: -quadPts[i].y});
+        
+        return fullPts;
+    }
+
+    function calculateAndDraw() {
+        const errBox = document.getElementById('error-box');
+        errBox.style.display = 'none';
+
+        const p = getInputs();
+
+        // Validation Rules
+        if (!p.L || !p.W || !p.w || isNaN(p.hf) || isNaN(p.hw)) {
+            errBox.innerText = "Please fill in all core and edge dimensions.";
+            errBox.style.display = 'block';
+            return;
+        }
+        if (p.W <= p.w) {
+            errBox.innerText = "Error: Flange Width (W) must be greater than Web Width (w).";
+            errBox.style.display = 'block';
+            return;
+        }
+        if ((2 * p.hf) + p.hw >= p.L) {
+            errBox.innerText = "Error: The sum of straight vertical edges (2*hf + hw) exceeds the overall length (L). Check your measurements.";
+            errBox.style.display = 'block';
+            return;
+        }
+
+        // 1. Calculate Bottom Area (offset = 0)
+        const bottomQuad = calculateQuadrantPolygon(p.L, p.W, p.w, p.hf, p.hw, 0);
+        const bottomArea = calculatePolygonArea(bottomQuad) * 4;
+
+        // 2. Calculate Top Area (offset = aw)
+        const topQuad = calculateQuadrantPolygon(p.L, p.W, p.w, p.hf, p.hw, p.aw);
+        const topArea = calculatePolygonArea(topQuad) * 4;
+
+        // Update UI
+        document.getElementById('res_bottom').innerText = bottomArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('res_top').innerText = topArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('results').style.display = 'block';
+
+        // Draw the visualization
+        drawPaver(bottomQuad, topQuad, p.L);
+    }
+
+    function drawPaver(bottomQuad, topQuad, maxL) {
+        const canvas = document.getElementById('paverCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Find scale to fit the drawing inside canvas with 20px padding
+        const scale = (height - 40) / maxL;
+        const cx = width / 2;
+        const cy = height / 2;
+
+        const bottomPts = buildFullPolygon(bottomQuad);
+        const topPts = buildFullPolygon(topQuad);
+
+        // Helper to draw a path
+        function drawPath(pts, fillColor, strokeColor, lineWidth = 1) {
+            ctx.beginPath();
+            ctx.moveTo(cx + pts[0].x * scale, cy - pts[0].y * scale);
+            for(let i=1; i<pts.length; i++) {
+                ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
+            }
+            ctx.closePath();
+            if(fillColor) { ctx.fillStyle = fillColor; ctx.fill(); }
+            if(strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); }
+        }
+
+        // Draw bottom footprint (Grey)
+        drawPath(bottomPts, '#e2e6e9', '#bdc3c7', 2);
+
+        // Draw top footprint (Red) over it
+        drawPath(topPts, 'rgba(231, 76, 60, 0.1)', '#e74c3c', 2);
+
+        // Draw chamfer connection lines (3D corner effect)
+        ctx.beginPath();
+        ctx.strokeStyle = '#bdc3c7';
+        ctx.lineWidth = 1;
+        for(let i=0; i<bottomPts.length; i++) {
+            ctx.moveTo(cx + bottomPts[i].x * scale, cy - bottomPts[i].y * scale);
+            ctx.lineTo(cx + topPts[i].x * scale, cy - topPts[i].y * scale);
+        }
+        ctx.stroke();
+    }
+</script>
+
+</body>
+</html>

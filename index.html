@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- By_Preet_Choudhary -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Exact I-Paver Area Calculator</title>
+    <title>I-Paver Area Calculator</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -36,7 +35,11 @@
             text-align: center;
             color: var(--primary);
             font-size: clamp(1.5rem, 4vw, 2.2rem);
-            margin-bottom: 20px;
+            margin-bottom: 5px;
+        }
+        
+        .print-only {
+            display: none;
         }
 
         .layout-grid {
@@ -78,6 +81,10 @@
             flex-direction: column;
             gap: 5px;
         }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
 
         label {
             font-weight: 600;
@@ -85,7 +92,7 @@
             color: #555;
         }
 
-        input[type="number"] {
+        input[type="number"], input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border);
@@ -94,7 +101,7 @@
             transition: border-color 0.2s;
         }
 
-        input[type="number"]:focus {
+        input:focus {
             outline: none;
             border-color: var(--accent);
             box-shadow: 0 0 0 3px var(--focus-ring);
@@ -171,56 +178,103 @@
             color: #777;
             margin-top: 10px;
         }
+
+        /* Action Button Styles */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            flex: 1;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-action:hover { background-color: #1a252f; }
+        .btn-export { background-color: #27ae60; }
+        .btn-export:hover { background-color: #219653; }
+
+        /* Print Media Query to hide inputs and format a clean report */
+        @media print {
+            body { background-color: white; }
+            .container { max-width: 100%; margin: 0; padding: 0; }
+            .layout-grid { display: block; }
+            .card { box-shadow: none; border: none; padding: 0; margin-bottom: 20px; }
+            #input-section, .btn-calc, .action-row { display: none !important; }
+            .results-box { border: 2px solid #000; background-color: #fff; padding: 15px; margin-top: 0; }
+            .result-row { border-bottom: 1px solid #ccc; }
+            canvas { max-width: 500px; border: 1px solid #000; }
+            h1 { margin-bottom: 5px; }
+            .print-only { display: block; text-align: center; color: var(--primary); font-size: 1.2rem; margin-bottom: 25px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Exact I-Paver Area Calculator</h1>
+    <h1>I-Paver Area Calculator</h1>
+    <h2 id="print_sample_name" class="print-only"></h2>
     
     <div class="layout-grid">
         <!-- Input Form Section -->
         <div class="card">
-            <h2>1. Core Dimensions (mm)</h2>
-            <div class="input-grid">
-                <div class="form-group">
-                    <label>Overall Length (L)</label>
-                    <input type="number" id="dim_L" value="200.2" step="any">
+            <div id="input-section">
+                <h2>Sample Identification</h2>
+                <div class="form-group" style="margin-bottom: 25px;">
+                    <label>Sample Name / ID</label>
+                    <input type="text" id="sample_name" placeholder="e.g. 26M88428FN">
                 </div>
-                <div class="form-group">
-                    <label>Flange Width (W)</label>
-                    <input type="number" id="dim_W" value="166.1" step="any">
-                </div>
-                <div class="form-group">
-                    <label>Web Width (w)</label>
-                    <input type="number" id="dim_w" value="116.1" step="any">
-                </div>
-            </div>
 
-            <h2 style="margin-top: 25px;">2. Vertical Edge Lengths (mm)</h2>
-            <p style="font-size:0.85rem; color:#666; margin-top:-5px;">Measure the straight portions before the angle begins.</p>
-            <div class="input-grid">
-                <div class="form-group">
-                    <label>Flange Edge (h_f)</label>
-                    <input type="number" id="dim_hf" placeholder="e.g. 40" step="any">
+                <h2>1. Core Dimensions (mm)</h2>
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>Overall Length (L)</label>
+                        <input type="number" id="dim_L" value="200.2" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label>Flange Width (W)</label>
+                        <input type="number" id="dim_W" value="166.1" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label>Web Width (w)</label>
+                        <input type="number" id="dim_w" value="116.1" step="any">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Web Edge (h_w)</label>
-                    <input type="number" id="dim_hw" placeholder="e.g. 60" step="any">
+
+                <h2 style="margin-top: 25px;">2. Vertical Edge Lengths (mm)</h2>
+                <p style="font-size:0.85rem; color:#666; margin-top:-5px;">Measure the straight portions before the angle begins.</p>
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>Flange Edge (h_f)</label>
+                        <input type="number" id="dim_hf" placeholder="e.g. 40" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label>Web Edge (h_w)</label>
+                        <input type="number" id="dim_hw" placeholder="e.g. 60" step="any">
+                    </div>
                 </div>
-            </div>
 
-            <h2 style="margin-top: 25px;">3. Top Face Chamfer (mm)</h2>
-            <div class="input-grid">
-                <div class="form-group">
-                    <label>Arris Width (aw)</label>
-                    <input type="number" id="dim_aw" value="5.5" step="any">
+                <h2 style="margin-top: 25px;">3. Top Face Chamfer (mm)</h2>
+                <div class="input-grid">
+                    <div class="form-group">
+                        <label>Arris Width (aw)</label>
+                        <input type="number" id="dim_aw" value="5.5" step="any">
+                    </div>
                 </div>
-            </div>
 
-            <div id="error-box" class="error-msg"></div>
+                <div id="error-box" class="error-msg"></div>
 
-            <button class="btn-calc" onclick="calculateAndDraw()">Calculate Exact Area</button>
+                <button class="btn-calc" onclick="calculateAndDraw()">Integrate Area</button>
+            </div> <!-- End input-section wrapper -->
 
             <!-- Results Data -->
             <div id="results" class="results-box">
@@ -232,24 +286,36 @@
                     <span class="result-label">Upper Face (Wearing Area):</span>
                     <span class="result-value" style="color:var(--accent);"><span id="res_top">0</span> mm&sup2;</span>
                 </div>
+                <div class="result-row" style="background-color: #d1ecf1; padding: 12px; border-radius: 6px; margin-top: 10px;">
+                    <span class="result-label">Weighted Avg. Width (Flexural):</span>
+                    <span class="result-value" style="color: #0c5460;"><span id="res_weighted_width">0</span> mm</span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-row">
+                    <button class="btn-action" onclick="printReport()">🖨️ Print Report</button>
+                    <button class="btn-action btn-export" onclick="exportCSV()">📊 Export CSV</button>
+                </div>
             </div>
         </div>
 
         <!-- Visualization Section -->
         <div class="card">
-            <h2>Top-Down Geometry Profile</h2>
+            <h2>Top-Down Boundary Profile</h2>
             <canvas id="paverCanvas" width="400" height="480"></canvas>
-            <div class="canvas-label">
-                <span style="color:#bdc3c7; font-weight:bold;">Grey:</span> Bottom Print 
-                &nbsp;|&nbsp; 
-                <span style="color:#e74c3c; font-weight:bold;">Red:</span> Top Print
+            <div id="canvasLabel" class="canvas-label">
+                <!-- Label text is injected dynamically via JavaScript -->
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Retrieves inputs and validates geometry constraints
+    // Draw the dimensional guide when the page first loads
+    window.onload = function() {
+        drawGuide();
+    };
+
     function getInputs() {
         return {
             L: parseFloat(document.getElementById('dim_L').value),
@@ -261,86 +327,180 @@
         };
     }
 
-    // Advanced Geometry: Calculates the 1st quadrant coordinates of the paver.
-    // The paver is symmetric, so we calculate the top-right quadrant (6 points)
-    // Offset applies an inward Arris deduction to calculate the top face exactly.
-    function calculateQuadrantPolygon(L, W, w, hf, hw, offset) {
-        let pts = [];
-        const d = offset;
+    /**
+     * DEFINITE INTEGRAL CALCULATOR
+     * Evaluates ∫(m*y + c) dy from limits [yA, yB]
+     * Antiderivative: F(y) = (m/2)*y^2 + c*y
+     */
+    function integrateLinear(m, c, yA, yB) {
+        const F = (y) => (m * y * y / 2) + (c * y);
+        return F(yB) - F(yA);
+    }
 
-        // Mathematical offset logic for normal bounds
-        const q1y = (L / 2) - d;
-        const q2x = (W / 2) - d;
-        
-        // Setup for the angled edge shift
-        const dx = (w / 2) - (W / 2);
-        const dy = (hw / 2) - ((L / 2) - hf);
-        
-        // If the straight edge was entered as 0, handle division by zero
-        if (dx === 0) return null; 
+    /**
+     * CALCULUS-BASED AREA SOLVER
+     * Integrates the piecewise boundary function x = f(y) in the first quadrant.
+     * Total Area = 4 * ∫ x(y) dy
+     */
+    function integrateQuadrantArea(L, W, w, hf, hw, d) {
+        // 1. Initial coordinates for the right boundary (before chamfer shift)
+        const x1 = w / 2;
+        const y1 = hw / 2;
+        const x2 = W / 2;
+        const y2 = (L / 2) - hf;
 
-        // Vector normal pointing inwards
+        // Slanted line vector (dy > 0, dx > 0)
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        
+        // Slope of x with respect to y (dx/dy)
+        const m_xy = dx / dy;
+
+        // 2. Normal vector pointing INWARD to apply the Arris chamfer offset 'd'
         const len = Math.sqrt(dx * dx + dy * dy);
-        const nx = dy / len;
-        const ny = -dx / len;
+        const nx = -dy / len; // Points left
+        const ny = dx / len;  // Points up
+
+        // Shifted point on the slanted line
+        const Sx = x1 + d * nx;
+        const Sy = y1 + d * ny;
+
+        // Equation of the shifted slanted line: x(y) = m_xy * y + c
+        const c = Sx - m_xy * Sy;
+
+        // 3. Define the new integration limits based on intersections with vertical bounds
+        const x_inner = (w / 2) - d;
+        const x_outer = (W / 2) - d;
+        const y_max = (L / 2) - d;
+
+        // Find intersection y-coordinates (y = (x - c) / m)
+        const y1_prime = (x_inner - c) / m_xy;
+        const y2_prime = (x_outer - c) / m_xy;
+
+        // 4. Perform piecewise definite integration: ∫ x(y) dy
+        // Section 1: Inner straight web (x is constant)
+        const I1 = integrateLinear(0, x_inner, 0, y1_prime);
         
-        // Slope of angled edge
-        const m = dy / dx;
+        // Section 2: Slanted trapezoidal transition (x varies with y)
+        const I2 = integrateLinear(m_xy, c, y1_prime, y2_prime);
         
-        // One shifted point on the angled line
-        const Sx = (W / 2) + d * nx;
-        const Sy = ((L / 2) - hf) + d * ny;
+        // Section 3: Outer straight flange (x is constant)
+        const I3 = integrateLinear(0, x_outer, y2_prime, y_max);
 
-        // Calculate intersection of shifted vertical lines with shifted angled line
-        const q3x = (W / 2) - d;
-        const q3y = m * (q3x - Sx) + Sy;
+        // Total Quadrant Area
+        const quadrantArea = I1 + I2 + I3;
 
-        const q4x = (w / 2) - d;
-        const q4y = m * (q4x - Sx) + Sy;
+        // Generate the exact points for the canvas drawing
+        const pts = [
+            { x: 0, y: 0 },
+            { x: x_inner, y: 0 },
+            { x: x_inner, y: y1_prime },
+            { x: x_outer, y: y2_prime },
+            { x: x_outer, y: y_max },
+            { x: 0, y: y_max }
+        ];
 
-        // Points defining the top-right quadrant (Counter-clockwise from origin)
-        pts.push({ x: 0, y: 0 });                 // Center
-        pts.push({ x: (w / 2) - d, y: 0 });       // Waist center
-        pts.push({ x: q4x, y: q4y });             // Inner angle corner
-        pts.push({ x: q3x, y: q3y });             // Outer angle corner
-        pts.push({ x: q2x, y: q1y });             // Top right outer corner
-        pts.push({ x: 0, y: q1y });               // Top center
-
-        return pts;
+        return { area: quadrantArea * 4, pts };
     }
 
-    // Shoelace formula for polygonal area
-    function calculatePolygonArea(pts) {
-        let area = 0;
-        for (let i = 0; i < pts.length; i++) {
-            let j = (i + 1) % pts.length;
-            area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
-        }
-        return Math.abs(area / 2);
-    }
-
-    // Mirror a single quadrant to generate the full 12-point symmetrical paver path
     function buildFullPolygon(quadPts) {
         let fullPts = [];
-        // Top Right (skip 0,0)
         for(let i=1; i<quadPts.length; i++) fullPts.push({x: quadPts[i].x, y: quadPts[i].y});
-        // Top Left
         for(let i=quadPts.length-2; i>=1; i--) fullPts.push({x: -quadPts[i].x, y: quadPts[i].y});
-        // Bottom Left
         for(let i=1; i<quadPts.length; i++) fullPts.push({x: -quadPts[i].x, y: -quadPts[i].y});
-        // Bottom Right
         for(let i=quadPts.length-2; i>=1; i--) fullPts.push({x: quadPts[i].x, y: -quadPts[i].y});
-        
         return fullPts;
+    }
+
+    // Function to draw the reference guide before calculation
+    function drawGuide() {
+        const canvas = document.getElementById('paverCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Standard dummy proportions for the visual guide
+        const gL = 200, gW = 160, gw = 100, ghf = 40, ghw = 60;
+        
+        // Added larger padding to ensure labels don't get clipped on the edges
+        const padX = 140; 
+        const padY = 100;
+        const scale = Math.min((width - padX) / gW, (height - padY) / gL); 
+        
+        const cx = width / 2;
+        const cy = height / 2;
+
+        const bottomData = integrateQuadrantArea(gL, gW, gw, ghf, ghw, 0);
+        const pts = buildFullPolygon(bottomData.pts);
+
+        // Draw the base shape
+        ctx.beginPath();
+        ctx.moveTo(cx + pts[0].x * scale, cy - pts[0].y * scale);
+        for(let i=1; i<pts.length; i++) {
+            ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
+        }
+        ctx.closePath();
+        ctx.fillStyle = '#f8f9fa';
+        ctx.fill();
+        ctx.strokeStyle = '#bdc3c7';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Helper function to draw dimension lines and labels
+        function drawDim(x1, y1, x2, y2, label, offset, isVertical) {
+            ctx.beginPath();
+            ctx.strokeStyle = '#7f8c8d';
+            ctx.lineWidth = 1;
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+
+            // Draw small ticks at ends
+            const tick = 5;
+            ctx.beginPath();
+            if (isVertical) {
+                ctx.moveTo(x1 - tick, y1); ctx.lineTo(x1 + tick, y1);
+                ctx.moveTo(x2 - tick, y2); ctx.lineTo(x2 + tick, y2);
+            } else {
+                ctx.moveTo(x1, y1 - tick); ctx.lineTo(x1, y1 + tick);
+                ctx.moveTo(x2, y2 - tick); ctx.lineTo(x2, y2 + tick);
+            }
+            ctx.stroke();
+
+            // Draw label text with background pill
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const tx = (x1 + x2) / 2 + (isVertical ? offset : 0);
+            const ty = (y1 + y2) / 2 + (isVertical ? 0 : offset);
+            
+            const textWidth = ctx.measureText(label).width;
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.fillRect(tx - textWidth/2 - 4, ty - 10, textWidth + 8, 20);
+            
+            ctx.fillStyle = '#c0392b';
+            ctx.fillText(label, tx, ty);
+        }
+
+        // Apply Dimension Annotations (with expanded positioning)
+        drawDim(cx - gW/2*scale - 40, cy - gL/2*scale, cx - gW/2*scale - 40, cy + gL/2*scale, 'L', -15, true); 
+        drawDim(cx - gW/2*scale, cy - gL/2*scale - 35, cx + gW/2*scale, cy - gL/2*scale - 35, 'W', -15, false); 
+        drawDim(cx - gw/2*scale, cy, cx + gw/2*scale, cy, 'w', -15, false); 
+        drawDim(cx + gW/2*scale + 40, cy - gL/2*scale, cx + gW/2*scale + 40, cy - gL/2*scale + ghf*scale, 'h_f', 15, true); 
+        drawDim(cx + gw/2*scale + 30, cy - ghw/2*scale, cx + gw/2*scale + 30, cy + ghw/2*scale, 'h_w', 15, true); 
+
+        // Update the legend label for the initial state
+        document.getElementById('canvasLabel').innerHTML = `<span style="color:#c0392b; font-weight:bold;">Guide:</span> Reference Dimensions`;
     }
 
     function calculateAndDraw() {
         const errBox = document.getElementById('error-box');
         errBox.style.display = 'none';
-
         const p = getInputs();
 
-        // Validation Rules
+        // Safety Validation
         if (!p.L || !p.W || !p.w || isNaN(p.hf) || isNaN(p.hw)) {
             errBox.innerText = "Please fill in all core and edge dimensions.";
             errBox.style.display = 'block';
@@ -352,45 +512,51 @@
             return;
         }
         if ((2 * p.hf) + p.hw >= p.L) {
-            errBox.innerText = "Error: The sum of straight vertical edges (2*hf + hw) exceeds the overall length (L). Check your measurements.";
+            errBox.innerText = "Error: (2*hf + hw) exceeds overall length (L). Verify your edge measurements.";
             errBox.style.display = 'block';
             return;
         }
 
-        // 1. Calculate Bottom Area (offset = 0)
-        const bottomQuad = calculateQuadrantPolygon(p.L, p.W, p.w, p.hf, p.hw, 0);
-        const bottomArea = calculatePolygonArea(bottomQuad) * 4;
+        // Apply Integration for Bottom Area (offset = 0)
+        const bottomData = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, 0);
+        
+        // Apply Integration for Top Area (offset = Arris Width)
+        const topData = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, p.aw);
 
-        // 2. Calculate Top Area (offset = aw)
-        const topQuad = calculateQuadrantPolygon(p.L, p.W, p.w, p.hf, p.hw, p.aw);
-        const topArea = calculatePolygonArea(topQuad) * 4;
+        // Calculate Weighted Average Width for Flexural Strength
+        const Ws = p.w + ((p.W - p.w) / 2);
+        const Ls = p.L - p.hw - (2 * p.hf);
+        const weightedAvgWidth = ((2 * p.hf * p.W) + (p.hw * p.w) + (Ws * Ls)) / p.L;
 
-        // Update UI
-        document.getElementById('res_bottom').innerText = bottomArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('res_top').innerText = topArea.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        // Update UI Results
+        document.getElementById('res_bottom').innerText = bottomData.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('res_top').innerText = topData.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('res_weighted_width').innerText = weightedAvgWidth.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         document.getElementById('results').style.display = 'block';
 
-        // Draw the visualization
-        drawPaver(bottomQuad, topQuad, p.L);
+        // Update Visualization Using the Integration Bounds
+        drawPaver(bottomData.pts, topData.pts, p.L, p.W);
+        
+        // Update Legend for Calculated State
+        document.getElementById('canvasLabel').innerHTML = `<span style="color:#bdc3c7; font-weight:bold;">Grey:</span> Bottom Profile &nbsp;|&nbsp; <span style="color:#e74c3c; font-weight:bold;">Red:</span> Top Profile`;
     }
 
-    function drawPaver(bottomQuad, topQuad, maxL) {
+    function drawPaver(bottomQuad, topQuad, maxL, maxW) {
         const canvas = document.getElementById('paverCanvas');
         const ctx = canvas.getContext('2d');
         const width = canvas.width;
         const height = canvas.height;
 
         ctx.clearRect(0, 0, width, height);
-
-        // Find scale to fit the drawing inside canvas with 20px padding
-        const scale = (height - 40) / maxL;
+        
+        // Dynamically scale based on both Height and Width to prevent overflow on extreme shapes
+        const scale = Math.min((width - 40) / maxW, (height - 40) / maxL);
         const cx = width / 2;
         const cy = height / 2;
 
         const bottomPts = buildFullPolygon(bottomQuad);
         const topPts = buildFullPolygon(topQuad);
 
-        // Helper to draw a path
         function drawPath(pts, fillColor, strokeColor, lineWidth = 1) {
             ctx.beginPath();
             ctx.moveTo(cx + pts[0].x * scale, cy - pts[0].y * scale);
@@ -402,13 +568,10 @@
             if(strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); }
         }
 
-        // Draw bottom footprint (Grey)
         drawPath(bottomPts, '#e2e6e9', '#bdc3c7', 2);
-
-        // Draw top footprint (Red) over it
         drawPath(topPts, 'rgba(231, 76, 60, 0.1)', '#e74c3c', 2);
 
-        // Draw chamfer connection lines (3D corner effect)
+        // Draw chamfer lines connecting corners
         ctx.beginPath();
         ctx.strokeStyle = '#bdc3c7';
         ctx.lineWidth = 1;
@@ -417,6 +580,63 @@
             ctx.lineTo(cx + topPts[i].x * scale, cy - topPts[i].y * scale);
         }
         ctx.stroke();
+    }
+
+    function printReport() {
+        const sampleNameInput = document.getElementById('sample_name').value.trim();
+        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Sample';
+        
+        // Change document title so the default save-as-PDF filename reflects the sample
+        const originalTitle = document.title;
+        document.title = `${sampleName}_area_report`;
+        
+        // Display sample name explicitly on the printed sheet
+        const printHeader = document.getElementById('print_sample_name');
+        printHeader.innerText = `Sample: ${sampleName}`;
+        
+        // Trigger browser print
+        window.print();
+        
+        // Revert title after printing dialogue closes
+        document.title = originalTitle;
+    }
+
+    function exportCSV() {
+        const p = getInputs();
+        const sampleNameInput = document.getElementById('sample_name').value.trim();
+        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Sample';
+
+        // Remove commas from the formatted numbers to keep them as valid CSV numbers
+        const resBottom = document.getElementById('res_bottom').innerText.replace(/,/g, '');
+        const resTop = document.getElementById('res_top').innerText.replace(/,/g, '');
+        const resWeightedWidth = document.getElementById('res_weighted_width').innerText.replace(/,/g, '');
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "I-Paver Area Calculation Report\n";
+        csvContent += `Sample Name,${sampleName}\n\n`;
+        
+        csvContent += "Input Dimensions,Value (mm)\n";
+        csvContent += `Overall Length (L),${p.L}\n`;
+        csvContent += `Flange Width (W),${p.W}\n`;
+        csvContent += `Web Width (w),${p.w}\n`;
+        csvContent += `Flange Edge (h_f),${p.hf}\n`;
+        csvContent += `Web Edge (h_w),${p.hw}\n`;
+        csvContent += `Arris Width (aw),${p.aw}\n\n`;
+
+        csvContent += "Calculated Results,Value\n";
+        csvContent += `Lower Face (Plan Area),${resBottom} mm^2\n`;
+        csvContent += `Upper Face (Wearing Area),${resTop} mm^2\n`;
+        csvContent += `Weighted Avg. Width (Flexural),${resWeightedWidth} mm\n`;
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        // Set the dynamic filename here
+        link.setAttribute("download", `${sampleName}_area_report.csv`);
+        document.body.appendChild(link);
+        
+        link.click();
+        document.body.removeChild(link);
     }
 </script>
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>I-Paver Area Calculator</title>
+    <title>I-Paver (Dumble shaped)</title>
     <style>
         :root {
             --primary: #2c3e50;
@@ -27,7 +27,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -35,12 +35,10 @@
             text-align: center;
             color: var(--primary);
             font-size: clamp(1.5rem, 4vw, 2.2rem);
-            margin-bottom: 5px;
+            margin-bottom: 20px;
         }
-        
-        .print-only {
-            display: none;
-        }
+
+        .print-only { display: none; }
 
         .layout-grid {
             display: grid;
@@ -48,9 +46,9 @@
             gap: 20px;
         }
 
-        @media (min-width: 800px) {
+        @media (min-width: 1000px) {
             .layout-grid {
-                grid-template-columns: 3fr 2fr;
+                grid-template-columns: 2fr 1fr;
             }
         }
 
@@ -60,6 +58,7 @@
             border-radius: 12px;
             padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow-x: auto;
         }
 
         h2 {
@@ -69,30 +68,28 @@
             border-bottom: 2px solid var(--bg);
             padding-bottom: 10px;
         }
-
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
+        
+        h3 {
+            font-size: 1.1rem;
+            color: #34495e;
+            margin: 25px 0 10px 0;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 5px;
-        }
-        
-        .full-width {
-            grid-column: 1 / -1;
+            max-width: 400px;
+            margin-bottom: 20px;
         }
 
         label {
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: #555;
         }
 
-        input[type="number"], input[type="text"] {
+        input[type="text"] {
             width: 100%;
             padding: 10px;
             border: 1px solid var(--border);
@@ -107,6 +104,68 @@
             box-shadow: 0 0 0 3px var(--focus-ring);
         }
 
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .data-table th, .data-table td {
+            border: 1px solid var(--border);
+            padding: 6px;
+            text-align: center;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            color: var(--primary);
+        }
+
+        .data-table input {
+            width: 70px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background-color: #f1f5f8;
+        }
+        
+        .data-table input:focus {
+            background-color: #fff;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 0 2px var(--focus-ring);
+        }
+
+        .disabled-cell {
+            background-color: #e9ecef;
+        }
+
+        .mean-cell {
+            font-weight: bold;
+            background-color: #eef2f5;
+            color: var(--primary);
+        }
+
+        .grand-mean-cell {
+            font-weight: bold;
+            background-color: #d4efdf;
+            color: #27ae60;
+            font-size: 1rem;
+        }
+
+        .sample-results-box {
+            background-color: #fdfefe;
+            border: 1px dashed #bdc3c7;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: #555;
+            display: none;
+        }
+        .sample-results-box span { font-weight: bold; color: var(--primary); }
+
         .btn-calc {
             width: 100%;
             background-color: var(--accent);
@@ -116,7 +175,7 @@
             font-size: 1.1rem;
             font-weight: bold;
             border-radius: 8px;
-            margin-top: 20px;
+            margin-top: 25px;
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -156,7 +215,7 @@
         
         .result-value {
             font-weight: 800;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             color: var(--primary);
         }
 
@@ -179,7 +238,6 @@
             margin-top: 10px;
         }
 
-        /* Action Button Styles */
         .action-row {
             display: flex;
             gap: 10px;
@@ -203,196 +261,181 @@
         .btn-export { background-color: #27ae60; }
         .btn-export:hover { background-color: #219653; }
 
-        /* Print Display Helpers */
-        .print-guide-wrapper { display: none; }
-        .print-title { display: none; }
-
-        /* Print Media Query to hide inputs and format a clean A4 report */
+        /* --- TIGHTENED A4 PRINT CSS TO FORCE 2 PAGES --- */
         @media print {
-            @page {
-                size: A4;
-                margin: 15mm;
-            }
-            body { 
+            /* Reduced outer margin to buy more vertical room */
+            @page { size: A4; margin: 10mm; } 
+            
+            body, html { 
                 background-color: white; 
                 color: black; 
-                font-family: 'Times New Roman', Times, serif;
-                font-size: 11pt;
-                padding: 0; 
-                margin: 0; 
+                font-family: Arial, Helvetica, sans-serif;
+                padding: 0; margin: 0; 
+                height: auto; max-height: none; overflow: visible;
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important;
             }
-            .container { max-width: 100%; margin: 0; padding: 0; }
-            .layout-grid { display: block; }
+            
+            /* Hide non-essential UI */
+            h1, .btn-calc, .action-row, #visualization-card, .error-msg, 
+            #input-section > h2, .form-group { 
+                display: none !important; 
+            }
+            .print-only { display: block !important; }
+            
+            .container { max-width: 100%; margin: 0; padding: 0; display: block; }
+            .layout-grid, .print-flex-container, #input-section, #tables-container { 
+                display: contents !important; 
+            }
+            
+            /* Flex layout to manage ordering and sizes */
             .card { 
-                box-shadow: none; 
-                border: none; 
-                padding: 0; 
-                margin-bottom: 20px; 
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
-            
-            /* Hide unnecessary UI */
-            h1, .subtitle { display: none !important; }
-            .btn-calc, .action-row, #visualization-card { display: none !important; }
-            
-            /* Print Title */
-            .print-title { 
-                display: block; 
-                text-align: center; 
-                color: #000; 
-                font-size: 16pt; 
-                margin-bottom: 20px; 
-                font-weight: bold; 
-                border-bottom: 2px solid #000; 
-                padding-bottom: 10px; 
-            }
-
-            /* Layout structure for print */
-            .print-flex-container {
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-                gap: 20px;
-            }
-
-            #input-section {
-                width: 55%;
-            }
-
-            .print-guide-wrapper { 
                 display: flex !important;
-                flex-direction: column;
-                align-items: center;
-                width: 40%; 
+                flex-wrap: wrap !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+                width: 100% !important;
+                box-shadow: none; border: none; padding: 0; margin: 0;
+            }
+
+            /* --- Page 1 Elements --- */
+            .print-header-box { 
+                width: 100%; order: 0; text-align: center; margin-bottom: 8px !important; 
+                border-bottom: 2px solid #000; padding-bottom: 6px !important;
+            }
+            .print-title { font-size: 14pt; font-weight: bold; margin: 0 0 4px 0; color: #000; }
+            .print-date { font-size: 9pt; color: #444; margin: 0; }
+            
+            /* Samples stacked fully wide, drastically reduced bottom margins */
+            .item-s1, .item-s2, .item-s3 {
+                width: 100% !important; 
+                page-break-inside: avoid !important; break-inside: avoid !important;
+            }
+            .item-s1 { order: 1; margin-bottom: 10px !important; }
+            .item-s2 { order: 2; margin-bottom: 10px !important; }
+            .item-s3 { order: 3; margin-bottom: 0 !important; }
+            
+            /* --- Forced Split to Page 2 --- */
+            .print-break {
+                display: block !important; order: 4;
+                width: 100% !important; height: 0 !important; margin: 0 !important;
+                page-break-after: always !important; break-after: page !important;
+            }
+
+            /* --- Page 2 Elements --- */
+            
+            /* Averaged Values Table (Top Left) */
+            .item-avg { order: 5; width: 48.5% !important; margin-top: 10px !important; }
+            
+            /* Results Box (Top Right) */
+            #results { 
+                display: flex !important; flex-direction: column; order: 6; width: 48.5% !important; 
+                border: 2px solid #000 !important; background: transparent !important; 
+                padding: 10px !important; margin-top: 10px !important; height: auto; 
             }
             
+            /* Reference Guide Image (Bottom Left, under Averaged Values) */
+            .print-guide-wrapper { 
+                display: flex !important; flex-direction: column; 
+                order: 7; align-items: center; 
+                width: 48.5% !important; margin-top: 15px !important; margin-right: auto;
+                page-break-inside: avoid; break-inside: avoid;
+            }
             .print-guide-wrapper canvas {
-                max-width: 100%;
-                height: auto;
-                border: 1px dashed #ccc;
-                background-color: #f8f9fa;
-                border-radius: 6px;
+                max-width: 100%; height: auto; border: 1px dashed #ccc; background-color: transparent;
             }
-            
-            /* Make inputs compact */
-            .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-            h2 { color: #000; font-size: 12pt; border-bottom: 1px solid #000; margin: 10px 0 5px 0; padding-bottom: 3px; }
-            .form-group { margin-bottom: 5px !important; }
-            label { font-size: 10pt; color: #333; }
-            p { display: none; /* hide instruction text in print */ }
-            
-            input[type="number"], input[type="text"] { 
-                border: 1px solid #666; 
-                border-radius: 4px; 
-                box-shadow: none; 
-                color: #000; 
-                font-family: 'Times New Roman', Times, serif;
-                font-weight: bold; 
-                background: transparent; 
-                padding: 5px 8px;
-                font-size: 11pt;
+
+            /* --- Shared Space-Saving Typography & Padding --- */
+            h3, #results h2, .print-guide-wrapper h2 { 
+                color: #000; font-size: 11pt; border-bottom: 1px solid #000 !important; 
+                margin: 0 0 4px 0 !important; padding-bottom: 2px; text-align: center; font-weight: bold;
             }
-            
-            /* Results Box */
-            .results-box { 
-                display: block !important; 
-                border: 2px solid #000; 
-                background-color: transparent !important; 
-                padding: 15px; 
-                margin-top: 15px; 
-                page-break-inside: avoid;
-                break-inside: avoid;
+            /* Table padding reduced aggressively to prevent vertical stretching */
+            .data-table { font-size: 9pt; width: 100%; border-collapse: collapse; margin-bottom: 0; }
+            .data-table th, .data-table td { padding: 4px 2px; border: 1px solid #444; text-align: center; }
+            .data-table th { background-color: transparent !important; font-weight: bold; }
+            .data-table input { 
+                border: none; background: transparent; font-weight: bold; 
+                font-size: 9pt; width: 100%; padding: 0; text-align: center; color: #000;
             }
-            .result-row { border-bottom: 1px solid #ccc; padding: 6px 0; font-size: 11pt; }
-            .result-row:last-child {
-                border-top: 2px solid #000;
-                border-bottom: none;
-                margin-top: 5px;
-                padding-top: 10px;
-                background-color: transparent !important;
-            }
+            .disabled-cell { background-color: #eaeaea !important; }
+            .mean-cell, .grand-mean-cell { background-color: transparent !important; color: #000 !important; font-weight: bold; }
             
-            .error-msg { display: none !important; }
+            /* Tightened Results Sub-boxes */
+            .sample-results-box { 
+                border: 1px dashed #666; background: transparent; 
+                padding: 4px; margin-top: 4px; font-size: 8.5pt; text-align: center; 
+            }
+            .result-row { 
+                border-bottom: 1px dotted #999; padding: 5px 0; font-size: 10pt; 
+                display: flex; justify-content: space-between; align-items: center;
+            }
+            .result-row:last-child { border-bottom: none; }
+            .result-row[style*="background-color"] { 
+                background-color: transparent !important; border: 1px solid #000; 
+                padding: 5px; margin-top: 5px; 
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>I-Paver Area Calculator</h1>
-    <h2 id="print_sample_name" class="print-title"></h2>
+    <h1>I-Paver (Dumble shaped)</h1>
     
     <div class="layout-grid">
-        <!-- Input Form Section -->
+        <!-- Main Form & Print Container -->
         <div class="card">
+            
+            <!-- HEADER (Only visible on print, forced to top by flex-order 0) -->
+            <div id="print_header_box" class="print-header-box print-only">
+                <h2 id="print_sample_name_header" class="print-title"></h2>
+                <div id="print_date" class="print-date"></div>
+            </div>
+
             <div class="print-flex-container">
                 <div id="input-section">
-                    <h2>Sample Identification</h2>
-                    <div class="form-group" style="margin-bottom: 25px;">
-                        <label>Sample Name / ID</label>
-                        <input type="text" id="sample_name" placeholder="e.g. 26M88428FN">
+                    <h2>Batch Identification</h2>
+                    <div class="form-group">
+                        <label>Sample Name / Batch ID</label>
+                        <input type="text" id="sample_name" placeholder="e.g. Batch_2026_M1">
                     </div>
 
-                    <h2>1. Core Dimensions (mm)</h2>
-                    <div class="input-grid">
-                        <div class="form-group">
-                            <label>Overall Length (L)</label>
-                            <input type="number" id="dim_L" value="200.2" step="any">
-                        </div>
-                        <div class="form-group">
-                            <label>Flange Width (W)</label>
-                            <input type="number" id="dim_W" value="166.1" step="any">
-                        </div>
-                        <div class="form-group">
-                            <label>Web Width (w)</label>
-                            <input type="number" id="dim_w" value="116.1" step="any">
-                        </div>
-                    </div>
-
-                    <h2 style="margin-top: 25px;">2. Vertical Edge Lengths (mm)</h2>
-                    <p style="font-size:0.85rem; color:#666; margin-top:-5px;">Measure the straight portions before the angle begins.</p>
-                    <div class="input-grid">
-                        <div class="form-group">
-                            <label>Flange Edge (h_f)</label>
-                            <input type="number" id="dim_hf" placeholder="e.g. 40" step="any">
-                        </div>
-                        <div class="form-group">
-                            <label>Web Edge (h_w)</label>
-                            <input type="number" id="dim_hw" placeholder="e.g. 60" step="any">
-                        </div>
-                    </div>
-
-                    <h2 style="margin-top: 25px;">3. Top Face Chamfer (mm)</h2>
-                    <div class="input-grid">
-                        <div class="form-group">
-                            <label>Arris Width (aw)</label>
-                            <input type="number" id="dim_aw" value="5.5" step="any">
-                        </div>
-                    </div>
+                    <h2>Measurements</h2>
+                    
+                    <!-- Dynamic Tables Container (Children extracted by CSS display: contents on print) -->
+                    <div id="tables-container"></div>
 
                     <div id="error-box" class="error-msg"></div>
+                    <button class="btn-calc" onclick="calculateAll()">Calculate results</button>
+                </div>
 
-                    <button class="btn-calc" onclick="calculateAndDraw()">Integrate Area</button>
-                </div> <!-- End input-section wrapper -->
-
-                <!-- Print Reference Image Wrapper (Visible ONLY on print) -->
-                <div class="print-guide-wrapper">
-                    <h2 style="text-align: center; border-bottom: none;">Reference Dimensions</h2>
+                <!-- Print Reference Image Wrapper (Positioned by flex order on print) -->
+                <div class="print-guide-wrapper print-only">
+                    <h2>Reference Dimensions</h2>
                     <canvas id="printGuideCanvas" width="400" height="480"></canvas>
                 </div>
-            </div> <!-- End print-flex-container wrapper -->
+            </div>
 
-            <!-- Results Data -->
+            <!-- Grand Results Data (Positioned by flex order on print) -->
             <div id="results" class="results-box">
+                <h2 style="border-bottom: none; margin-bottom: 15px; text-align: center;">Results</h2>
+                
                 <div class="result-row">
-                    <span class="result-label">Lower Face (Plan Area):</span>
+                    <span class="result-label">Plan Area:</span>
                     <span class="result-value"><span id="res_bottom">0</span> mm&sup2;</span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Upper Face (Wearing Area):</span>
+                    <span class="result-label">Wearing Area:</span>
                     <span class="result-value" style="color:var(--accent);"><span id="res_top">0</span> mm&sup2;</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Wearing / Plan Area Ratio:</span>
+                    <span class="result-value"><span id="res_ratio">0</span></span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Aspect Ratio (L/T):</span>
+                    <span class="result-value"><span id="res_aspect">0</span></span>
                 </div>
                 <div class="result-row" style="background-color: #d1ecf1; padding: 12px; border-radius: 6px; margin-top: 10px;">
                     <span class="result-label">Weighted Avg. Width (Flexural):</span>
@@ -407,109 +450,284 @@
             </div>
         </div>
 
-        <!-- Visualization Section -->
+        <!-- Visualization Section (Hidden on Print) -->
         <div class="card" id="visualization-card">
-            <h2>Top-Down Boundary Profile</h2>
+            <h2>Calculated Boundary Profile (Grand Avg)</h2>
             <canvas id="paverCanvas" width="400" height="480"></canvas>
             <div id="canvasLabel" class="canvas-label">
-                <!-- Label text is injected dynamically via JavaScript -->
+                <!-- Label text injected dynamically -->
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Draw the dimensional guide when the page first loads
+    const dimensions = [
+        { id: 'L', name: 'Overall Length (L)', r: 4 },
+        { id: 'W', name: 'Higher Width (W)', r: 4 },
+        { id: 'w', name: 'Lower Width (w)', r: 4 },
+        { id: 'hf', name: 'Length of Higher Width (h_f)', r: 4 },
+        { id: 'hw', name: 'Length of Lower Width (h_w)', r: 4 },
+        { id: 'aw', name: 'Arris Width (a_w)', r: 4 },
+        { id: 'ad', name: 'Arris Depth (a_d)', r: 4 },
+        { id: 'T', name: 'Thickness (T)', r: 4 },
+        { id: 'Sq', name: 'Squareness (Sq)', r: 6 }
+    ];
+
+    function buildTables() {
+        let html = '';
+        
+        // 1. Build Sample Tables (1, 2, 3)
+        for (let s = 1; s <= 3; s++) {
+            html += `<div class="grid-item item-s${s}">`;
+            html += `<h3>Sample ${s}</h3>`;
+            html += `<table class="data-table">
+                        <thead><tr>
+                            <th style="width:30%">Dimension</th>
+                            <th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th><th>R6</th>
+                            <th>Mean</th>
+                        </tr></thead><tbody>`;
+            
+            dimensions.forEach(dim => {
+                html += `<tr><td style="text-align:left">${dim.name}</td>`;
+                for (let r = 1; r <= 6; r++) {
+                    if (r <= dim.r) {
+                        html += `<td><input type="number" step="any" class="val-input" data-s="${s}" data-d="${dim.id}" data-r="${r}"></td>`;
+                    } else {
+                        html += `<td class="disabled-cell"></td>`;
+                    }
+                }
+                html += `<td class="mean-cell" id="mean_${s}_${dim.id}">-</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            
+            // Container for individual sample results
+            html += `<div id="res_box_s${s}" class="sample-results-box">
+                Sample ${s} &rarr; 
+                Plan Area: <span id="res_s${s}_plan">-</span> mm² | 
+                Wear Area: <span id="res_s${s}_wear">-</span> mm² | 
+                L/T Ratio: <span id="res_s${s}_asp">-</span> | 
+                W_avg: <span id="res_s${s}_wavg">-</span> mm
+            </div>`;
+            html += `</div>`;
+        }
+
+        // 2. INJECT PAGE BREAK DIV (Strictly forces page 2 on print)
+        html += `<div class="print-break print-only"></div>`;
+
+        // 3. Build Averaged Values Table
+        html += `<div class="grid-item item-avg">`;
+        html += `<h3>Averaged Values</h3>`;
+        html += `<table class="data-table">
+                    <thead><tr>
+                        <th style="width:40%">Dimension</th>
+                        <th>S1 Mean</th><th>S2 Mean</th><th>S3 Mean</th>
+                        <th>Grand Avg</th>
+                    </tr></thead><tbody>`;
+        dimensions.forEach(dim => {
+            html += `<tr>
+                <td style="text-align:left">${dim.name}</td>
+                <td id="grand_s1_${dim.id}">-</td>
+                <td id="grand_s2_${dim.id}">-</td>
+                <td id="grand_s3_${dim.id}">-</td>
+                <td class="grand-mean-cell" id="grand_avg_${dim.id}">-</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+        html += `</div>`; 
+
+        document.getElementById('tables-container').innerHTML = html;
+        attachListeners();
+    }
+
+    function attachListeners() {
+        const inputs = Array.from(document.querySelectorAll('.val-input'));
+        inputs.forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (index + 1 < inputs.length) {
+                        inputs[index + 1].focus();
+                        inputs[index + 1].select();
+                    } else {
+                        calculateAll(); 
+                    }
+                }
+            });
+
+            // Reset calculate button text if data is modified
+            input.addEventListener('input', () => {
+                const btn = document.querySelector('.btn-calc');
+                if (btn && btn.innerText === "Results calculated") {
+                    btn.innerText = "Calculate results";
+                }
+            });
+        });
+    }
+
+    function populateMockData() {
+        const mockData = {
+            1: { L: [199.4, 200.6, 200.0, 199.8], W: [166.1, 165.9, 166.0, 166.2], w: [116.1, 116.0, 115.9, 116.2], hf: [40, 40, 40, 40], hw: [60, 60, 60, 60], aw: [5.4, 5.5, 5.4, 5.5], ad: [3.0, 3.2, 3.1, 3.0], T: [80, 80.5, 80.2, 80.1], Sq: [0.1, 0.2, 0.1, 0.1, 0.2, 0.1] },
+            2: { L: [200.1, 200.3, 199.9, 200.0], W: [166.0, 166.3, 165.8, 166.1], w: [116.0, 116.2, 115.8, 116.1], hf: [40, 40, 40, 40], hw: [60, 60, 60, 60], aw: [5.5, 5.6, 5.5, 5.4], ad: [3.1, 3.1, 3.2, 3.0], T: [80.1, 80.4, 80.2, 80.3], Sq: [0.2, 0.1, 0.2, 0.1, 0.1, 0.2] },
+            3: { L: [199.8, 199.9, 200.2, 200.1], W: [166.2, 166.0, 166.1, 165.9], w: [116.1, 116.0, 116.2, 115.9], hf: [40, 40, 40, 40], hw: [60, 60, 60, 60], aw: [5.4, 5.4, 5.5, 5.6], ad: [3.0, 3.2, 3.1, 3.1], T: [80.3, 80.1, 80.4, 80.2], Sq: [0.1, 0.2, 0.1, 0.2, 0.1, 0.1] }
+        };
+
+        for (let s = 1; s <= 3; s++) {
+            dimensions.forEach(dim => {
+                let vals = mockData[s][dim.id];
+                for (let r = 1; r <= vals.length; r++) {
+                    const el = document.querySelector(`input[data-s="${s}"][data-d="${dim.id}"][data-r="${r}"]`);
+                    if (el) el.value = vals[r - 1];
+                }
+            });
+        }
+    }
+
+    // Initialize the application
     window.onload = function() {
+        buildTables();
+        populateMockData();
         drawGuide('paverCanvas');
         drawGuide('printGuideCanvas');
     };
 
-    function getInputs() {
-        return {
-            L: parseFloat(document.getElementById('dim_L').value),
-            W: parseFloat(document.getElementById('dim_W').value),
-            w: parseFloat(document.getElementById('dim_w').value),
-            hf: parseFloat(document.getElementById('dim_hf').value),
-            hw: parseFloat(document.getElementById('dim_hw').value),
-            aw: parseFloat(document.getElementById('dim_aw').value) || 0
-        };
-    }
-
-    /**
-     * DEFINITE INTEGRAL CALCULATOR
-     * Evaluates ∫(m*y + c) dy from limits [yA, yB]
-     * Antiderivative: F(y) = (m/2)*y^2 + c*y
-     */
     function integrateLinear(m, c, yA, yB) {
         const F = (y) => (m * y * y / 2) + (c * y);
         return F(yB) - F(yA);
     }
 
-    /**
-     * CALCULUS-BASED AREA SOLVER
-     * Integrates the piecewise boundary function x = f(y) in the first quadrant.
-     * Total Area = 4 * ∫ x(y) dy
-     */
     function integrateQuadrantArea(L, W, w, hf, hw, d) {
-        // 1. Initial coordinates for the right boundary (before chamfer shift)
         const x1 = w / 2;
         const y1 = hw / 2;
         const x2 = W / 2;
         const y2 = (L / 2) - hf;
 
-        // Slanted line vector (dy > 0, dx > 0)
         const dx = x2 - x1;
         const dy = y2 - y1;
-        
-        // Slope of x with respect to y (dx/dy)
         const m_xy = dx / dy;
 
-        // 2. Normal vector pointing INWARD to apply the Arris chamfer offset 'd'
         const len = Math.sqrt(dx * dx + dy * dy);
-        const nx = -dy / len; // Points left
-        const ny = dx / len;  // Points up
+        const nx = -dy / len; 
+        const ny = dx / len;  
 
-        // Shifted point on the slanted line
         const Sx = x1 + d * nx;
         const Sy = y1 + d * ny;
-
-        // Equation of the shifted slanted line: x(y) = m_xy * y + c
         const c = Sx - m_xy * Sy;
 
-        // 3. Define the new integration limits based on intersections with vertical bounds
         const x_inner = (w / 2) - d;
         const x_outer = (W / 2) - d;
         const y_max = (L / 2) - d;
 
-        // Find intersection y-coordinates (y = (x - c) / m)
         const y1_prime = (x_inner - c) / m_xy;
         const y2_prime = (x_outer - c) / m_xy;
 
-        // 4. Perform piecewise definite integration: ∫ x(y) dy
-        // Section 1: Inner straight web (x is constant)
         const I1 = integrateLinear(0, x_inner, 0, y1_prime);
-        
-        // Section 2: Slanted trapezoidal transition (x varies with y)
         const I2 = integrateLinear(m_xy, c, y1_prime, y2_prime);
-        
-        // Section 3: Outer straight flange (x is constant)
         const I3 = integrateLinear(0, x_outer, y2_prime, y_max);
 
-        // Total Quadrant Area
         const quadrantArea = I1 + I2 + I3;
-
-        // Generate the exact points for the canvas drawing
         const pts = [
-            { x: 0, y: 0 },
-            { x: x_inner, y: 0 },
-            { x: x_inner, y: y1_prime },
-            { x: x_outer, y: y2_prime },
-            { x: x_outer, y: y_max },
-            { x: 0, y: y_max }
+            { x: 0, y: 0 }, { x: x_inner, y: 0 }, { x: x_inner, y: y1_prime },
+            { x: x_outer, y: y2_prime }, { x: x_outer, y: y_max }, { x: 0, y: y_max }
         ];
 
         return { area: quadrantArea * 4, pts };
+    }
+
+    function calculateAll() {
+        const errBox = document.getElementById('error-box');
+        errBox.style.display = 'none';
+
+        let sampleData = { 1: {}, 2: {}, 3: {} };
+        let grandData = {};
+
+        // 1. Calculate Row Means
+        dimensions.forEach(dim => {
+            let gSum = 0, gCount = 0;
+            for (let s = 1; s <= 3; s++) {
+                let sum = 0, count = 0;
+                for (let r = 1; r <= dim.r; r++) {
+                    const input = document.querySelector(`input[data-s="${s}"][data-d="${dim.id}"][data-r="${r}"]`);
+                    const val = parseFloat(input.value);
+                    if (!isNaN(val)) { sum += val; count++; }
+                }
+                const mean = count > 0 ? sum / count : NaN;
+                sampleData[s][dim.id] = mean;
+                
+                document.getElementById(`mean_${s}_${dim.id}`).innerText = !isNaN(mean) ? mean.toFixed(2) : '-';
+                document.getElementById(`grand_s${s}_${dim.id}`).innerText = !isNaN(mean) ? mean.toFixed(2) : '-';
+
+                if (!isNaN(mean)) { gSum += mean; gCount++; }
+            }
+            const grandAvg = gCount > 0 ? gSum / gCount : NaN;
+            grandData[dim.id] = grandAvg;
+            document.getElementById(`grand_avg_${dim.id}`).innerText = !isNaN(grandAvg) ? grandAvg.toFixed(2) : '-';
+        });
+
+        // 2. Process Individual Samples
+        for (let s = 1; s <= 3; s++) {
+            const p = sampleData[s];
+            const box = document.getElementById(`res_box_s${s}`);
+            
+            if (!isNaN(p.L) && !isNaN(p.W) && !isNaN(p.w) && !isNaN(p.hf) && !isNaN(p.hw) && p.L > 0) {
+                if (p.W <= p.w || (2 * p.hf) + p.hw >= p.L) {
+                    box.style.display = 'none'; continue; 
+                }
+
+                const bArea = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, 0).area;
+                const tArea = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, p.aw || 0).area;
+                
+                const Ws = p.w + ((p.W - p.w) / 2);
+                const Ls = p.L - p.hw - (2 * p.hf);
+                const wWidth = ((2 * p.hf * p.W) + (p.hw * p.w) + (Ws * Ls)) / p.L;
+                const aspect = p.L / p.T;
+
+                document.getElementById(`res_s${s}_plan`).innerText = bArea.toFixed(2);
+                document.getElementById(`res_s${s}_wear`).innerText = tArea.toFixed(2);
+                document.getElementById(`res_s${s}_asp`).innerText = !isNaN(aspect) ? aspect.toFixed(2) : '-';
+                document.getElementById(`res_s${s}_wavg`).innerText = wWidth.toFixed(2);
+                box.style.display = 'block';
+            } else {
+                box.style.display = 'none';
+            }
+        }
+
+        // 3. Process Grand Averages
+        const g = grandData;
+        if (isNaN(g.L) || isNaN(g.W) || isNaN(g.w) || isNaN(g.hf) || isNaN(g.hw)) {
+            errBox.innerText = "Please provide enough valid measurements to calculate grand averages.";
+            errBox.style.display = 'block';
+            return;
+        }
+        if (g.W <= g.w || (2 * g.hf) + g.hw >= g.L) {
+            errBox.innerText = "Error: Invalid Grand Averages. Higher Width must > Lower Width, and Length must > (2*hf + hw).";
+            errBox.style.display = 'block';
+            return;
+        }
+
+        const gBottom = integrateQuadrantArea(g.L, g.W, g.w, g.hf, g.hw, 0);
+        const gTop = integrateQuadrantArea(g.L, g.W, g.w, g.hf, g.hw, g.aw || 0);
+        
+        const gRatio = gTop.area / gBottom.area;
+        const gAspect = g.L / g.T;
+        const gWs = g.w + ((g.W - g.w) / 2);
+        const gLs = g.L - g.hw - (2 * g.hf);
+        const gWWidth = ((2 * g.hf * g.W) + (g.hw * g.w) + (gWs * gLs)) / g.L;
+
+        // Display
+        document.getElementById('res_bottom').innerText = gBottom.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('res_top').innerText = gTop.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('res_ratio').innerText = gRatio.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
+        document.getElementById('res_aspect').innerText = !isNaN(gAspect) ? gAspect.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-';
+        document.getElementById('res_weighted_width').innerText = gWWidth.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        
+        document.getElementById('results').style.display = 'block';
+
+        // Update Canvas & Button Text
+        drawPaver(gBottom.pts, gTop.pts, g.L, g.W);
+        document.getElementById('canvasLabel').innerHTML = `<span style="color:#bdc3c7; font-weight:bold;">Grey:</span> Plan Area &nbsp;|&nbsp; <span style="color:#e74c3c; font-weight:bold;">Red:</span> Wearing Area`;
+        
+        document.querySelector('.btn-calc').innerText = "Results calculated";
     }
 
     function buildFullPolygon(quadPts) {
@@ -521,55 +739,31 @@
         return fullPts;
     }
 
-    // Function to draw the reference guide before calculation
-    function drawGuide(canvasId = 'paverCanvas') {
+    function drawGuide(canvasId) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        ctx.clearRect(0, 0, width, height);
-
-        // Standard dummy proportions for the visual guide
         const gL = 200, gW = 160, gw = 100, ghf = 40, ghw = 60;
-        
-        // Added larger padding to ensure labels don't get clipped on the edges
-        const padX = 140; 
-        const padY = 100;
-        const scale = Math.min((width - padX) / gW, (height - padY) / gL); 
-        
-        const cx = width / 2;
-        const cy = height / 2;
+        const padX = 140, padY = 100;
+        const scale = Math.min((canvas.width - padX) / gW, (canvas.height - padY) / gL); 
+        const cx = canvas.width / 2, cy = canvas.height / 2;
 
         const bottomData = integrateQuadrantArea(gL, gW, gw, ghf, ghw, 0);
         const pts = buildFullPolygon(bottomData.pts);
 
-        // Draw the base shape
         ctx.beginPath();
         ctx.moveTo(cx + pts[0].x * scale, cy - pts[0].y * scale);
-        for(let i=1; i<pts.length; i++) {
-            ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
-        }
+        for(let i=1; i<pts.length; i++) ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
         ctx.closePath();
-        ctx.fillStyle = '#f8f9fa';
-        ctx.fill();
-        ctx.strokeStyle = '#bdc3c7';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.fillStyle = '#f8f9fa'; ctx.fill();
+        ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 2; ctx.stroke();
 
-        // Helper function to draw dimension lines and labels
         function drawDim(x1, y1, x2, y2, label, offset, isVertical) {
-            ctx.beginPath();
-            ctx.strokeStyle = '#7f8c8d';
-            ctx.lineWidth = 1;
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
-            ctx.stroke();
-
-            // Draw small ticks at ends
-            const tick = 5;
-            ctx.beginPath();
+            ctx.beginPath(); ctx.strokeStyle = '#7f8c8d'; ctx.lineWidth = 1;
+            ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+            const tick = 5; ctx.beginPath();
             if (isVertical) {
                 ctx.moveTo(x1 - tick, y1); ctx.lineTo(x1 + tick, y1);
                 ctx.moveTo(x2 - tick, y2); ctx.lineTo(x2 + tick, y2);
@@ -578,103 +772,37 @@
                 ctx.moveTo(x2, y2 - tick); ctx.lineTo(x2, y2 + tick);
             }
             ctx.stroke();
-
-            // Draw label text with background pill
-            ctx.font = 'bold 14px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            const tx = (x1 + x2) / 2 + (isVertical ? offset : 0);
-            const ty = (y1 + y2) / 2 + (isVertical ? 0 : offset);
-            
+            ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            const tx = (x1 + x2) / 2 + (isVertical ? offset : 0), ty = (y1 + y2) / 2 + (isVertical ? 0 : offset);
             const textWidth = ctx.measureText(label).width;
-            ctx.fillStyle = 'rgba(255,255,255,0.85)';
-            ctx.fillRect(tx - textWidth/2 - 4, ty - 10, textWidth + 8, 20);
-            
-            ctx.fillStyle = '#c0392b';
-            ctx.fillText(label, tx, ty);
+            ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillRect(tx - textWidth/2 - 4, ty - 10, textWidth + 8, 20);
+            ctx.fillStyle = '#c0392b'; ctx.fillText(label, tx, ty);
         }
 
-        // Apply Dimension Annotations (with expanded positioning)
         drawDim(cx - gW/2*scale - 40, cy - gL/2*scale, cx - gW/2*scale - 40, cy + gL/2*scale, 'L', -15, true); 
         drawDim(cx - gW/2*scale, cy - gL/2*scale - 35, cx + gW/2*scale, cy - gL/2*scale - 35, 'W', -15, false); 
         drawDim(cx - gw/2*scale, cy, cx + gw/2*scale, cy, 'w', -15, false); 
         drawDim(cx + gW/2*scale + 40, cy - gL/2*scale, cx + gW/2*scale + 40, cy - gL/2*scale + ghf*scale, 'h_f', 15, true); 
         drawDim(cx + gw/2*scale + 30, cy - ghw/2*scale, cx + gw/2*scale + 30, cy + ghw/2*scale, 'h_w', 15, true); 
 
-        // Update the legend label for the initial state (only for the main display canvas)
         if (canvasId === 'paverCanvas') {
-            document.getElementById('canvasLabel').innerHTML = `<span style="color:#c0392b; font-weight:bold;">Guide:</span> Reference Dimensions`;
+            document.getElementById('canvasLabel').innerHTML = `<span style="color:#c0392b; font-weight:bold;">Guide:</span> Dimensional Mapping`;
         }
-    }
-
-    function calculateAndDraw() {
-        const errBox = document.getElementById('error-box');
-        errBox.style.display = 'none';
-        const p = getInputs();
-
-        // Safety Validation
-        if (!p.L || !p.W || !p.w || isNaN(p.hf) || isNaN(p.hw)) {
-            errBox.innerText = "Please fill in all core and edge dimensions.";
-            errBox.style.display = 'block';
-            return;
-        }
-        if (p.W <= p.w) {
-            errBox.innerText = "Error: Flange Width (W) must be greater than Web Width (w).";
-            errBox.style.display = 'block';
-            return;
-        }
-        if ((2 * p.hf) + p.hw >= p.L) {
-            errBox.innerText = "Error: (2*hf + hw) exceeds overall length (L). Verify your edge measurements.";
-            errBox.style.display = 'block';
-            return;
-        }
-
-        // Apply Integration for Bottom Area (offset = 0)
-        const bottomData = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, 0);
-        
-        // Apply Integration for Top Area (offset = Arris Width)
-        const topData = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, p.aw);
-
-        // Calculate Weighted Average Width for Flexural Strength
-        const Ws = p.w + ((p.W - p.w) / 2);
-        const Ls = p.L - p.hw - (2 * p.hf);
-        const weightedAvgWidth = ((2 * p.hf * p.W) + (p.hw * p.w) + (Ws * Ls)) / p.L;
-
-        // Update UI Results
-        document.getElementById('res_bottom').innerText = bottomData.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('res_top').innerText = topData.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('res_weighted_width').innerText = weightedAvgWidth.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('results').style.display = 'block';
-
-        // Update Visualization Using the Integration Bounds
-        drawPaver(bottomData.pts, topData.pts, p.L, p.W);
-        
-        // Update Legend for Calculated State
-        document.getElementById('canvasLabel').innerHTML = `<span style="color:#bdc3c7; font-weight:bold;">Grey:</span> Bottom Profile &nbsp;|&nbsp; <span style="color:#e74c3c; font-weight:bold;">Red:</span> Top Profile`;
     }
 
     function drawPaver(bottomQuad, topQuad, maxL, maxW) {
         const canvas = document.getElementById('paverCanvas');
         const ctx = canvas.getContext('2d');
-        const width = canvas.width;
-        const height = canvas.height;
-
-        ctx.clearRect(0, 0, width, height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Dynamically scale based on both Height and Width to prevent overflow on extreme shapes
-        const scale = Math.min((width - 40) / maxW, (height - 40) / maxL);
-        const cx = width / 2;
-        const cy = height / 2;
-
-        const bottomPts = buildFullPolygon(bottomQuad);
-        const topPts = buildFullPolygon(topQuad);
+        const scale = Math.min((canvas.width - 40) / maxW, (canvas.height - 40) / maxL);
+        const cx = canvas.width / 2, cy = canvas.height / 2;
+        const bottomPts = buildFullPolygon(bottomQuad), topPts = buildFullPolygon(topQuad);
 
         function drawPath(pts, fillColor, strokeColor, lineWidth = 1) {
             ctx.beginPath();
             ctx.moveTo(cx + pts[0].x * scale, cy - pts[0].y * scale);
-            for(let i=1; i<pts.length; i++) {
-                ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
-            }
+            for(let i=1; i<pts.length; i++) ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
             ctx.closePath();
             if(fillColor) { ctx.fillStyle = fillColor; ctx.fill(); }
             if(strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); }
@@ -683,10 +811,7 @@
         drawPath(bottomPts, '#e2e6e9', '#bdc3c7', 2);
         drawPath(topPts, 'rgba(231, 76, 60, 0.1)', '#e74c3c', 2);
 
-        // Draw chamfer lines connecting corners
-        ctx.beginPath();
-        ctx.strokeStyle = '#bdc3c7';
-        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 1;
         for(let i=0; i<bottomPts.length; i++) {
             ctx.moveTo(cx + bottomPts[i].x * scale, cy - bottomPts[i].y * scale);
             ctx.lineTo(cx + topPts[i].x * scale, cy - topPts[i].y * scale);
@@ -696,57 +821,81 @@
 
     function printReport() {
         const sampleNameInput = document.getElementById('sample_name').value.trim();
-        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Sample';
+        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Batch';
         
-        // Change document title so the default save-as-PDF filename reflects the sample
+        // Auto-generate current date based on standard Indian timing format
+        const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+        
         const originalTitle = document.title;
         document.title = `${sampleName}_area_report`;
         
-        // Display sample name explicitly on the printed sheet
-        const printHeader = document.getElementById('print_sample_name');
-        printHeader.innerText = `Sample: ${sampleName}`;
+        // Populate the print headers directly before printing
+        document.getElementById('print_sample_name_header').innerText = `Batch / Sample ID: ${sampleName}`;
+        document.getElementById('print_date').innerText = `Generated on: ${dateStr}`;
         
-        // Trigger browser print
         window.print();
-        
-        // Revert title after printing dialogue closes
         document.title = originalTitle;
     }
 
     function exportCSV() {
-        const p = getInputs();
         const sampleNameInput = document.getElementById('sample_name').value.trim();
-        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Sample';
+        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Batch';
 
-        // Remove commas from the formatted numbers to keep them as valid CSV numbers
-        const resBottom = document.getElementById('res_bottom').innerText.replace(/,/g, '');
-        const resTop = document.getElementById('res_top').innerText.replace(/,/g, '');
-        const resWeightedWidth = document.getElementById('res_weighted_width').innerText.replace(/,/g, '');
-
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "I-Paver Area Calculation Report\n";
-        csvContent += `Sample Name,${sampleName}\n\n`;
+        let csv = "I-Paver Area Calculation Report\n";
+        csv += `Batch/Sample ID,${sampleName}\n\n`;
         
-        csvContent += "Input Dimensions,Value (mm)\n";
-        csvContent += `Overall Length (L),${p.L}\n`;
-        csvContent += `Flange Width (W),${p.W}\n`;
-        csvContent += `Web Width (w),${p.w}\n`;
-        csvContent += `Flange Edge (h_f),${p.hf}\n`;
-        csvContent += `Web Edge (h_w),${p.hw}\n`;
-        csvContent += `Arris Width (aw),${p.aw}\n\n`;
+        // Raw Data Block
+        csv += "Raw Measurements & Sample Means\n";
+        csv += "Sample,Dimension,R1,R2,R3,R4,R5,R6,Mean\n";
+        for(let s=1; s<=3; s++) {
+            dimensions.forEach(dim => {
+                let row = `${s},${dim.name.replace(/,/g, '')}`;
+                for(let r=1; r<=6; r++) {
+                    if(r <= dim.r) {
+                        let val = document.querySelector(`input[data-s="${s}"][data-d="${dim.id}"][data-r="${r}"]`).value;
+                        row += `,${val}`;
+                    } else { row += `,`; }
+                }
+                let mean = document.getElementById(`mean_${s}_${dim.id}`).innerText;
+                csv += `${row},${mean}\n`;
+            });
+        }
 
-        csvContent += "Calculated Results,Value\n";
-        csvContent += `Lower Face (Plan Area),${resBottom} mm^2\n`;
-        csvContent += `Upper Face (Wearing Area),${resTop} mm^2\n`;
-        csvContent += `Weighted Avg. Width (Flexural),${resWeightedWidth} mm\n`;
+        // Grand Averages Block
+        csv += "\nBatch Grand Averages\nDimension,S1 Mean,S2 Mean,S3 Mean,Grand Avg\n";
+        dimensions.forEach(dim => {
+            let s1 = document.getElementById(`grand_s1_${dim.id}`).innerText;
+            let s2 = document.getElementById(`grand_s2_${dim.id}`).innerText;
+            let s3 = document.getElementById(`grand_s3_${dim.id}`).innerText;
+            let g = document.getElementById(`grand_avg_${dim.id}`).innerText;
+            csv += `${dim.name.replace(/,/g, '')},${s1},${s2},${s3},${g}\n`;
+        });
 
-        const encodedUri = encodeURI(csvContent);
+        // Individual Results Block
+        csv += "\nIndividual Sample Results\nSample,Plan Area (mm^2),Wearing Area (mm^2),Aspect Ratio (L/T),Weighted Avg Width (mm)\n";
+        for(let s=1; s<=3; s++) {
+            let p = document.getElementById(`res_s${s}_plan`) ? document.getElementById(`res_s${s}_plan`).innerText : '-';
+            let w = document.getElementById(`res_s${s}_wear`) ? document.getElementById(`res_s${s}_wear`).innerText : '-';
+            let a = document.getElementById(`res_s${s}_asp`) ? document.getElementById(`res_s${s}_asp`).innerText : '-';
+            let wa = document.getElementById(`res_s${s}_wavg`) ? document.getElementById(`res_s${s}_wavg`).innerText : '-';
+            csv += `Sample ${s},${p.replace(/,/g, '')},${w.replace(/,/g, '')},${a},${wa.replace(/,/g, '')}\n`;
+        }
+
+        // Grand Results Block
+        csv += "\nGrand Batch Results\nMetric,Value\n";
+        csv += `Plan Area (mm^2),${document.getElementById('res_bottom').innerText.replace(/,/g, '')}\n`;
+        csv += `Wearing Area (mm^2),${document.getElementById('res_top').innerText.replace(/,/g, '')}\n`;
+        csv += `Wearing / Plan Area Ratio,${document.getElementById('res_ratio').innerText}\n`;
+        csv += `Aspect Ratio (L/T),${document.getElementById('res_aspect').innerText}\n`;
+        csv += `Weighted Avg. Width (mm),${document.getElementById('res_weighted_width').innerText.replace(/,/g, '')}\n`;
+
+        // Safely encode CSV for download
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        // Set the dynamic filename here
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
         link.setAttribute("download", `${sampleName}_area_report.csv`);
         document.body.appendChild(link);
-        
         link.click();
         document.body.removeChild(link);
     }

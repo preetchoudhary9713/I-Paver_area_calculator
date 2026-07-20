@@ -1,462 +1,576 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>I-Paver (Dumble shaped)</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --accent: #e74c3c;
-            --bg: #ecf0f1;
-            --card-bg: #ffffff;
-            --border: #bdc3c7;
-            --text-main: #333333;
-            --focus-ring: rgba(231, 76, 60, 0.2);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>I-Paver (Dumble Shaped) — Dimensional QC Report Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+    :root {
+        --ink: #12181f;
+        --steel: #24486b;
+        --steel-light: #b8cddd;
+        --steel-bg: #eaf1f6;
+        --safety: #d9540a;
+        --safety-dark: #b3430a;
+        --safety-bg: #fdece0;
+        --success: #1f7a4d;
+        --success-bg: #eafaf1;
+        --success-border: #b9e8cd;
+        --warning: #b7791f;
+        --warning-bg: #fdf3e0;
+        --warning-border: #f3dba3;
+        --danger: #b3261e;
+        --danger-bg: #fbeae9;
+        --danger-border: #f3c8c4;
+        --bg: #eef1f5;
+        --paper: #ffffff;
+        --border: #dde3ea;
+        --border-strong: #c3ccd6;
+        --text-muted: #5b6672;
+        --focus-ring: rgba(217, 84, 10, .22);
+        --radius-lg: 16px;
+        --radius-md: 10px;
+        --radius-sm: 6px;
+        --font-display: 'Space Grotesk', system-ui, sans-serif;
+        --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+        --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+        font-family: var(--font-body);
+        background-color: var(--bg);
+        background-image:
+            linear-gradient(var(--border) 1px, transparent 1px),
+            linear-gradient(90deg, var(--border) 1px, transparent 1px);
+        background-size: 28px 28px;
+        background-attachment: fixed;
+        color: var(--ink);
+        margin: 0;
+        padding: clamp(12px, 3vw, 32px);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1360px; margin: 0 auto; }
+
+    /* ---------- Header ---------- */
+    .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 22px;
+        padding-bottom: 18px;
+        border-bottom: 2px solid var(--ink);
+    }
+    .app-header-text { max-width: 720px; }
+    .eyebrow {
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--safety);
+        margin: 0 0 6px 0;
+    }
+    h1 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--ink);
+        font-size: clamp(1.6rem, 3.6vw, 2.35rem);
+        margin: 0 0 8px 0;
+        letter-spacing: -0.01em;
+    }
+    h1 .h1-accent { color: var(--steel); font-weight: 500; }
+    .header-desc { margin: 0; color: var(--text-muted); font-size: 0.95rem; max-width: 60ch; }
+    .header-badge {
+        flex-shrink: 0;
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        background: var(--steel-bg);
+        border: 1.5px solid var(--steel-light);
+        display: flex; align-items: center; justify-content: center;
+        color: var(--steel);
+    }
+    .header-badge svg { width: 32px; height: 32px; }
+
+    /* ---------- Layout ---------- */
+    .print-only { display: none; }
+    .layout-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    @media (min-width: 1020px) {
+        .layout-grid { grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr); align-items: start; }
+    }
+
+    .card {
+        background-color: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 24px;
+        box-shadow: 0 1px 2px rgba(18,24,31,0.04), 0 8px 24px rgba(18,24,31,0.05);
+        overflow-x: auto;
+    }
+    #visualization-card { position: sticky; top: 20px; }
+
+    h2 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        margin: 0 0 14px 0;
+        font-size: 1.02rem;
+        color: var(--ink);
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+    }
+    h3 {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--steel);
+        margin: 28px 0 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    h3 .sample-dot {
+        width: 20px; height: 20px; border-radius: 50%;
+        background: var(--steel); color: #fff;
+        font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+
+    .section-header-row {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 10px 16px;
+        margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    }
+    .section-header-row h2 { margin: 0; padding: 0; border: none; }
+    .toolbar-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ---------- Forms ---------- */
+    .field-row { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+    @media (max-width: 620px) { .field-row { grid-template-columns: 1fr; } }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label {
+        font-weight: 600; font-size: 0.8rem; color: var(--text-muted);
+        text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    input[type="text"], input[type="date"] {
+        width: 100%; padding: 10px 12px;
+        border: 1.5px solid var(--border-strong); border-radius: var(--radius-sm);
+        font-size: 15px; font-family: var(--font-body); color: var(--ink);
+        background: var(--paper);
+        transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus {
+        outline: none; border-color: var(--safety);
+        box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        border: none; border-radius: var(--radius-sm);
+        font-family: var(--font-body); font-weight: 600; cursor: pointer;
+        transition: background-color .15s, transform .05s, box-shadow .15s;
+    }
+    .btn svg { width: 17px; height: 17px; flex-shrink: 0; }
+    .btn:active { transform: translateY(1px); }
+
+    .btn-ghost {
+        background: var(--paper); color: var(--steel);
+        border: 1.5px solid var(--border-strong);
+        padding: 9px 14px; font-size: 0.85rem;
+    }
+    .btn-ghost:hover { background: var(--steel-bg); border-color: var(--steel-light); }
+
+    .btn-calc {
+        width: 100%; background-color: var(--safety); color: #fff;
+        padding: 15px; font-size: 1.05rem; border-radius: var(--radius-md);
+        margin-top: 22px;
+        box-shadow: 0 2px 0 var(--safety-dark);
+    }
+    .btn-calc:hover { background-color: var(--safety-dark); }
+    .btn-calc.is-done { background-color: var(--success); box-shadow: 0 2px 0 #145c39; }
+    .btn-calc.is-done:hover { background-color: #185f3d; }
+    .btn-calc .icon-default { display: inline-flex; }
+    .btn-calc .icon-done { display: none; }
+    .btn-calc.is-done .icon-default { display: none; }
+    .btn-calc.is-done .icon-done { display: inline-flex; }
+
+    .action-row { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+    .btn-action { flex: 1; min-width: 160px; padding: 12px 14px; font-size: 0.95rem; border-radius: var(--radius-md); color: #fff; }
+    .btn-print { background-color: var(--steel); }
+    .btn-print:hover { background-color: #1b3752; }
+    .btn-export { background-color: #1a7f4b; }
+    .btn-export:hover { background-color: #146339; }
+
+    /* ---------- Data table ---------- */
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 8px; }
+    .data-table th, .data-table td {
+        border: 1px solid var(--border); padding: 7px 5px; text-align: center;
+    }
+    .data-table th {
+        background-color: var(--steel-bg); color: var(--steel);
+        font-family: var(--font-mono); font-weight: 600; font-size: 0.72rem;
+        text-transform: uppercase; letter-spacing: 0.03em;
+    }
+    .data-table td:first-child { text-align: left; font-weight: 500; }
+    .data-table input {
+        width: 100%; padding: 7px 4px; text-align: center;
+        border: 1px solid transparent; border-radius: 5px;
+        font-size: 0.85rem; font-family: var(--font-mono);
+        background-color: #f4f7f9; color: var(--ink);
+        font-variant-numeric: tabular-nums;
+    }
+    .data-table input:focus { background-color: #fff; border-color: var(--safety); box-shadow: 0 0 0 2px var(--focus-ring); }
+    .data-table input.flag-outlier {
+        background-color: var(--warning-bg); border-color: var(--warning-border); color: var(--warning);
+        font-weight: 600;
+    }
+    .disabled-cell { background-color: #eef1f4; }
+    .mean-cell { font-weight: 700; background-color: #f4f7f9; color: var(--steel); font-family: var(--font-mono); }
+    .grand-mean-cell { font-weight: 700; background-color: var(--success-bg); color: var(--success); font-family: var(--font-mono); }
+
+    .legend-row {
+        display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: var(--text-muted);
+        margin: -2px 0 14px 0;
+    }
+    .legend-swatch { display: inline-flex; align-items: center; gap: 5px; }
+    .legend-swatch .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+    .sample-results-box {
+        background-color: var(--steel-bg); border: 1px dashed var(--steel-light);
+        padding: 10px 14px; border-radius: var(--radius-sm);
+        font-size: 0.85rem; color: var(--ink); display: none;
+        font-family: var(--font-mono);
+    }
+    .sample-results-box .label-plain { font-family: var(--font-body); color: var(--text-muted); }
+    .sample-results-box b { color: var(--steel); }
+
+    .error-msg {
+        color: var(--danger); font-weight: 600; margin-top: 16px; display: none;
+        padding: 12px 14px; background: var(--danger-bg); border: 1px solid var(--danger-border);
+        border-radius: var(--radius-sm); align-items: center; gap: 10px;
+    }
+    .error-msg svg { flex-shrink: 0; width: 20px; height: 20px; }
+
+    /* ---------- Results box ---------- */
+    .results-box {
+        background-color: var(--steel-bg); border: 1.5px solid var(--steel-light);
+        border-radius: var(--radius-lg); padding: 22px; margin-top: 22px; display: none;
+    }
+    .results-box h2 { border: none; margin-bottom: 6px; }
+    .result-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 13px 0; border-bottom: 1px solid var(--steel-light);
+        gap: 10px;
+    }
+    .result-row:last-of-type { border-bottom: none; }
+    .result-label { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; }
+    .info-icon { color: var(--text-muted); cursor: help; display: inline-flex; }
+    .info-icon svg { width: 15px; height: 15px; }
+    .result-value { font-weight: 700; font-size: 1.15rem; color: var(--ink); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .result-row.highlight {
+        background-color: #fff; border: 1.5px solid var(--steel); border-radius: var(--radius-sm);
+        padding: 14px 16px; margin-top: 6px;
+    }
+    .result-row.highlight .result-value { color: var(--steel); }
+
+    /* ---------- Canvas ---------- */
+    canvas {
+        width: 100%; max-width: 400px; height: auto; aspect-ratio: 1/1.2;
+        background-color: #fbfcfd; border: 1px solid var(--border);
+        border-radius: var(--radius-md); display: block; margin: 0 auto;
+    }
+    .canvas-label { text-align: center; font-size: 0.82rem; color: var(--text-muted); margin-top: 10px; }
+
+    /* ---------- Misc ---------- */
+    ::selection { background: var(--safety-bg); color: var(--safety-dark); }
+
+    /* =======================================================================
+       PRINT — locked to exactly 2 A4 pages
+       ======================================================================= */
+    @media print {
+        @page { size: A4; margin: 10mm; }
+
+        body, html {
+            background: #fff none; color: #000;
+            font-family: Arial, Helvetica, sans-serif;
+            padding: 0; margin: 0; height: auto; max-height: none; overflow: visible;
+            -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
-        
-        *, *::before, *::after { box-sizing: border-box; }
 
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: clamp(10px, 3vw, 30px);
-            line-height: 1.6;
+        h1, .eyebrow, .header-desc, .header-badge, .btn-calc, .action-row,
+        #visualization-card, .error-msg, #input-section > h2, .form-group,
+        .field-row, .section-header-row, .legend-row {
+            display: none !important;
         }
+        .print-only { display: block; }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            text-align: center;
-            color: var(--primary);
-            font-size: clamp(1.5rem, 4vw, 2.2rem);
-            margin-bottom: 20px;
-        }
-
-        .print-only { display: none; }
-
-        .layout-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        @media (min-width: 1000px) {
-            .layout-grid {
-                grid-template-columns: 2fr 1fr;
-            }
+        .container { max-width: 100%; margin: 0; padding: 0; display: block; }
+        .layout-grid, .print-flex-container, #input-section, #tables-container {
+            display: contents !important;
         }
 
         .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            overflow-x: auto;
+            display: flex !important; flex-wrap: wrap !important;
+            justify-content: space-between !important; align-items: flex-start !important;
+            width: 100% !important; box-shadow: none; border: none; padding: 0; margin: 0;
         }
 
-        h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            color: var(--primary);
-            border-bottom: 2px solid var(--bg);
-            padding-bottom: 10px;
+        /* ---- Page 1 ---- */
+        .print-header-box {
+            width: 100%; order: 0; margin-bottom: 7px !important;
+            border-bottom: 2px solid #000; padding-bottom: 6px !important;
         }
-        
-        h3 {
-            font-size: 1.1rem;
-            color: #34495e;
-            margin: 25px 0 10px 0;
-        }
+        .print-title { font-size: 13.5pt; font-weight: 700; margin: 0 0 5px 0; color: #000; }
+        .print-meta-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 3px 14px; }
+        .print-meta-row .meta-item { display: flex; flex-direction: column; }
+        .print-meta-row .meta-item span { font-size: 7.3pt; text-transform: uppercase; letter-spacing: .04em; color: #444; }
+        .print-meta-row .meta-item strong { font-size: 9.3pt; }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            max-width: 400px;
-            margin-bottom: 20px;
-        }
+        .item-s1, .item-s2, .item-s3 { width: 100% !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+        .item-s1 { order: 1; margin-bottom: 8px !important; }
+        .item-s2 { order: 2; margin-bottom: 8px !important; }
+        .item-s3 { order: 3; margin-bottom: 2px !important; }
 
-        label {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #555;
-        }
+        .page1-footer { order: 4; width: 100%; }
+        .print-break { display: block !important; order: 5; width: 100% !important; height: 0 !important; margin: 0 !important; page-break-after: always !important; break-after: page !important; }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.2s;
+        /* ---- Page 2 ---- */
+        .item-avg { order: 6; width: 48.6% !important; margin-top: 8px !important; }
+        #results {
+            display: flex !important; flex-direction: column; order: 7; width: 48.6% !important;
+            border: 1.5px solid #000 !important; background: transparent !important;
+            padding: 9px 11px !important; margin-top: 8px !important; height: auto;
         }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--focus-ring);
+        .print-guide-wrapper, .print-profile-wrapper {
+            display: flex !important; flex-direction: column; align-items: center;
+            width: 48.6% !important; margin-top: 12px !important;
+            page-break-inside: avoid; break-inside: avoid;
         }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
+        .print-guide-wrapper { order: 8; }
+        .print-profile-wrapper { order: 9; }
+        .print-guide-wrapper canvas, .print-profile-wrapper canvas {
+            max-width: 100%; height: auto; border: 1px solid #666; background-color: #fff;
         }
+        .diagram-caption { font-size: 7.6pt; color: #333; text-align: center; margin-top: 4px; }
 
-        .data-table th, .data-table td {
-            border: 1px solid var(--border);
-            padding: 6px;
-            text-align: center;
+        .print-methodology {
+            order: 10; width: 100%; font-size: 7.8pt; color: #333; line-height: 1.35;
+            margin-top: 10px; padding-top: 6px; border-top: 1px dotted #999;
         }
-
-        .data-table th {
-            background-color: #f8f9fa;
-            color: var(--primary);
+        .print-signoff {
+            order: 11; width: 100% !important; display: flex !important;
+            justify-content: space-between; gap: 14px; margin-top: 16px;
+            page-break-inside: avoid; break-inside: avoid;
         }
+        .signoff-item { flex: 1; text-align: center; }
+        .signoff-line { display: block; border-bottom: 1px solid #000; height: 20px; }
+        .signoff-item label { display: block; font-size: 7.5pt; margin-top: 3px; color: #333; text-transform: none; letter-spacing: 0; font-weight: 400; }
 
+        .print-page-footer {
+            width: 100% !important; text-align: center; font-size: 7.5pt; color: #666;
+            border-top: 1px solid #ccc; padding-top: 3px; margin-top: 8px;
+        }
+        .page1-footer.print-page-footer { order: 4; }
+        .page2-footer.print-page-footer { order: 12; }
+
+        /* ---- Shared table typography ---- */
+        h3, #results h2, .print-guide-wrapper h2, .print-profile-wrapper h2 {
+            color: #000; font-size: 10.5pt; border-bottom: 1px solid #000 !important;
+            margin: 0 0 4px 0 !important; padding-bottom: 2px; text-align: center; font-weight: 700;
+        }
+        h3 { text-align: left; }
+        h3 .sample-dot { background: #000 !important; color: #fff !important; width: 15px; height: 15px; font-size: 8pt; }
+
+        .data-table { font-size: 8.6pt; width: 100%; border-collapse: collapse; margin-bottom: 0; }
+        .data-table th, .data-table td { padding: 3.5px 2px; border: 1px solid #555; text-align: center; }
+        .data-table th { background-color: transparent !important; color: #000 !important; font-weight: 700; }
         .data-table input {
-            width: 70px;
-            padding: 6px;
-            text-align: center;
-            border: 1px solid transparent;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            background-color: #f1f5f8;
+            border: none !important; background: transparent !important; font-weight: 600;
+            font-size: 8.6pt; width: 100%; padding: 0; text-align: center; color: #000 !important;
         }
-        
-        .data-table input:focus {
-            background-color: #fff;
-            border: 1px solid var(--accent);
-            box-shadow: 0 0 0 2px var(--focus-ring);
-        }
-
-        .disabled-cell {
-            background-color: #e9ecef;
-        }
-
-        .mean-cell {
-            font-weight: bold;
-            background-color: #eef2f5;
-            color: var(--primary);
-        }
-
-        .grand-mean-cell {
-            font-weight: bold;
-            background-color: #d4efdf;
-            color: #27ae60;
-            font-size: 1rem;
-        }
+        .disabled-cell { background-color: #eee !important; }
+        .mean-cell, .grand-mean-cell { background-color: transparent !important; color: #000 !important; font-weight: 700; }
 
         .sample-results-box {
-            background-color: #fdfefe;
-            border: 1px dashed #bdc3c7;
-            padding: 10px 15px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            color: #555;
-            display: none;
+            border: 1px dashed #777; background: transparent; color: #000;
+            padding: 4px; margin-top: 3px; font-size: 7.8pt; text-align: center;
         }
-        .sample-results-box span { font-weight: bold; color: var(--primary); }
+        .sample-results-box .label-plain, .sample-results-box b { color: #000; }
 
-        .btn-calc {
-            width: 100%;
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            padding: 15px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            margin-top: 25px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+        .result-row { border-bottom: 1px dotted #999; padding: 5px 0; font-size: 9.3pt; }
+        .result-row:last-of-type { border-bottom: none; }
+        .result-row.highlight { background: transparent !important; border: 1px solid #000; padding: 5px 7px; margin-top: 4px; }
+        .result-value, .result-row.highlight .result-value { color: #000 !important; }
+        .info-icon { display: none !important; }
+    }
 
-        .btn-calc:hover { background-color: #c0392b; }
-
-        .error-msg {
-            color: #e74c3c;
-            font-weight: bold;
-            margin-top: 15px;
-            display: none;
-            padding: 10px;
-            background: #fadbd8;
-            border-radius: 6px;
-        }
-
-        .results-box {
-            background-color: #e8f4f8;
-            border: 2px solid #b3d7e5;
-            border-radius: 8px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .result-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #b3d7e5;
-        }
-
-        .result-row:last-child { border-bottom: none; }
-
-        .result-label { font-weight: 600; font-size: 1rem; }
-        
-        .result-value {
-            font-weight: 800;
-            font-size: 1.2rem;
-            color: var(--primary);
-        }
-
-        canvas {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
-            aspect-ratio: 1/1.2;
-            background-color: #f8f9fa;
-            border: 1px dashed var(--border);
-            border-radius: 8px;
-            display: block;
-            margin: 0 auto;
-        }
-        
-        .canvas-label {
-            text-align: center;
-            font-size: 0.85rem;
-            color: #777;
-            margin-top: 10px;
-        }
-
-        .action-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn-action {
-            flex: 1;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .btn-action:hover { background-color: #1a252f; }
-        .btn-export { background-color: #27ae60; }
-        .btn-export:hover { background-color: #219653; }
-
-        /* --- TIGHTENED A4 PRINT CSS TO FORCE 2 PAGES --- */
-        @media print {
-            /* Reduced outer margin to buy more vertical room */
-            @page { size: A4; margin: 10mm; } 
-            
-            body, html { 
-                background-color: white; 
-                color: black; 
-                font-family: Arial, Helvetica, sans-serif;
-                padding: 0; margin: 0; 
-                height: auto; max-height: none; overflow: visible;
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important;
-            }
-            
-            /* Hide non-essential UI */
-            h1, .btn-calc, .action-row, #visualization-card, .error-msg, 
-            #input-section > h2, .form-group { 
-                display: none !important; 
-            }
-            .print-only { display: block !important; }
-            
-            .container { max-width: 100%; margin: 0; padding: 0; display: block; }
-            .layout-grid, .print-flex-container, #input-section, #tables-container { 
-                display: contents !important; 
-            }
-            
-            /* Flex layout to manage ordering and sizes */
-            .card { 
-                display: flex !important;
-                flex-wrap: wrap !important;
-                justify-content: space-between !important;
-                align-items: flex-start !important;
-                width: 100% !important;
-                box-shadow: none; border: none; padding: 0; margin: 0;
-            }
-
-            /* --- Page 1 Elements --- */
-            .print-header-box { 
-                width: 100%; order: 0; text-align: center; margin-bottom: 8px !important; 
-                border-bottom: 2px solid #000; padding-bottom: 6px !important;
-            }
-            .print-title { font-size: 14pt; font-weight: bold; margin: 0 0 4px 0; color: #000; }
-            .print-date { font-size: 9pt; color: #444; margin: 0; }
-            
-            /* Samples stacked fully wide, drastically reduced bottom margins */
-            .item-s1, .item-s2, .item-s3 {
-                width: 100% !important; 
-                page-break-inside: avoid !important; break-inside: avoid !important;
-            }
-            .item-s1 { order: 1; margin-bottom: 10px !important; }
-            .item-s2 { order: 2; margin-bottom: 10px !important; }
-            .item-s3 { order: 3; margin-bottom: 0 !important; }
-            
-            /* --- Forced Split to Page 2 --- */
-            .print-break {
-                display: block !important; order: 4;
-                width: 100% !important; height: 0 !important; margin: 0 !important;
-                page-break-after: always !important; break-after: page !important;
-            }
-
-            /* --- Page 2 Elements --- */
-            
-            /* Averaged Values Table (Top Left) */
-            .item-avg { order: 5; width: 48.5% !important; margin-top: 10px !important; }
-            
-            /* Results Box (Top Right) */
-            #results { 
-                display: flex !important; flex-direction: column; order: 6; width: 48.5% !important; 
-                border: 2px solid #000 !important; background: transparent !important; 
-                padding: 10px !important; margin-top: 10px !important; height: auto; 
-            }
-            
-            /* Reference Guide Image (Bottom Left, under Averaged Values) */
-            .print-guide-wrapper { 
-                display: flex !important; flex-direction: column; 
-                order: 7; align-items: center; 
-                width: 48.5% !important; margin-top: 15px !important; margin-right: auto;
-                page-break-inside: avoid; break-inside: avoid;
-            }
-            .print-guide-wrapper canvas {
-                max-width: 100%; height: auto; border: 1px dashed #ccc; background-color: transparent;
-            }
-
-            /* --- Shared Space-Saving Typography & Padding --- */
-            h3, #results h2, .print-guide-wrapper h2 { 
-                color: #000; font-size: 11pt; border-bottom: 1px solid #000 !important; 
-                margin: 0 0 4px 0 !important; padding-bottom: 2px; text-align: center; font-weight: bold;
-            }
-            /* Table padding reduced aggressively to prevent vertical stretching */
-            .data-table { font-size: 9pt; width: 100%; border-collapse: collapse; margin-bottom: 0; }
-            .data-table th, .data-table td { padding: 4px 2px; border: 1px solid #444; text-align: center; }
-            .data-table th { background-color: transparent !important; font-weight: bold; }
-            .data-table input { 
-                border: none; background: transparent; font-weight: bold; 
-                font-size: 9pt; width: 100%; padding: 0; text-align: center; color: #000;
-            }
-            .disabled-cell { background-color: #eaeaea !important; }
-            .mean-cell, .grand-mean-cell { background-color: transparent !important; color: #000 !important; font-weight: bold; }
-            
-            /* Tightened Results Sub-boxes */
-            .sample-results-box { 
-                border: 1px dashed #666; background: transparent; 
-                padding: 4px; margin-top: 4px; font-size: 8.5pt; text-align: center; 
-            }
-            .result-row { 
-                border-bottom: 1px dotted #999; padding: 5px 0; font-size: 10pt; 
-                display: flex; justify-content: space-between; align-items: center;
-            }
-            .result-row:last-child { border-bottom: none; }
-            .result-row[style*="background-color"] { 
-                background-color: transparent !important; border: 1px solid #000; 
-                padding: 5px; margin-top: 5px; 
-            }
-        }
-    </style>
+    @media (max-width: 640px) {
+        .app-header { flex-direction: column; align-items: flex-start; }
+        .header-badge { display: none; }
+    }
+</style>
 </head>
 <body>
 
 <div class="container">
-    <h1>I-Paver (Dumble shaped)</h1>
-    
+    <header class="app-header">
+        <div class="app-header-text">
+            <p class="eyebrow">Dimensional QC · Batch Report Tool</p>
+            <h1>I-Paver <span class="h1-accent">(Dumble Shaped)</span></h1>
+            <p class="header-desc">Measure, average, and report plan and wearing-surface areas for dumbbell-profile interlocking pavers — three samples, nine dimensions, one batch report.</p>
+        </div>
+        <div class="header-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 15 15 3l6 6L9 21Z"/>
+                <path d="M13 5l2 2"/><path d="M9 9l2 2"/><path d="M5 13l2 2"/><path d="M16 6l2 2"/>
+            </svg>
+        </div>
+    </header>
+
     <div class="layout-grid">
         <!-- Main Form & Print Container -->
         <div class="card">
-            
-            <!-- HEADER (Only visible on print, forced to top by flex-order 0) -->
+
             <div id="print_header_box" class="print-header-box print-only">
-                <h2 id="print_sample_name_header" class="print-title"></h2>
-                <div id="print_date" class="print-date"></div>
+                <h2 class="print-title">I-Paver (Dumble Shaped) — Dimensional QC Report</h2>
+                <div class="print-meta-row">
+                    <div class="meta-item"><span>Batch / Sample ID</span><strong id="print_sample_name_header"></strong></div>
+                    <div class="meta-item"><span>Tested By</span><strong id="print_tested_by"></strong></div>
+                    <div class="meta-item"><span>Test Date</span><strong id="print_test_date"></strong></div>
+                    <div class="meta-item"><span>Report Generated</span><strong id="print_generated"></strong></div>
+                </div>
             </div>
 
             <div class="print-flex-container">
                 <div id="input-section">
                     <h2>Batch Identification</h2>
-                    <div class="form-group">
-                        <label>Sample Name / Batch ID</label>
-                        <input type="text" id="sample_name" placeholder="e.g. Batch_2026_M1">
+                    <div class="field-row">
+                        <div class="form-group">
+                            <label for="sample_name">Sample Name / Batch ID</label>
+                            <input type="text" id="sample_name" placeholder="e.g. Batch_2026_M1">
+                        </div>
+                        <div class="form-group">
+                            <label for="tested_by">Tested By</label>
+                            <input type="text" id="tested_by" placeholder="Inspector / technician">
+                        </div>
+                        <div class="form-group">
+                            <label for="test_date">Test Date</label>
+                            <input type="date" id="test_date">
+                        </div>
                     </div>
 
-                    <h2>Measurements</h2>
-                    
-                    <!-- Dynamic Tables Container (Children extracted by CSS display: contents on print) -->
+                    <div class="section-header-row">
+                        <h2 style="border:none;padding:0;margin:0;">Measurements</h2>
+                        <div class="toolbar-buttons">
+                            <button type="button" class="btn btn-ghost" onclick="loadDemoData()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6l-5.5 9.5A1 1 0 0 0 5.4 20h13.2a1 1 0 0 0 .9-1.5L14 9V3"/><path d="M7 15h10"/></svg>
+                                Load demo data
+                            </button>
+                            <button type="button" class="btn btn-ghost" onclick="clearAllData()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>
+                                Clear all
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="legend-row">
+                        <span class="legend-swatch"><span class="dot" style="background:var(--warning-bg);border:1px solid var(--warning-border);"></span>Possible entry/measurement anomaly — worth a second look (not a spec failure)</span>
+                    </div>
+
                     <div id="tables-container"></div>
 
-                    <div id="error-box" class="error-msg"></div>
-                    <button class="btn-calc" onclick="calculateAll()">Calculate results</button>
+                    <div id="error-box" class="error-msg">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><line x1="12" y1="9" x2="12" y2="14"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>
+                        <span id="error-text"></span>
+                    </div>
+                    <button class="btn btn-calc" onclick="calculateAll()">
+                        <span class="icon-default"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="10" y2="11"/><line x1="8" y1="15" x2="10" y2="15"/><line x1="14" y1="11" x2="16" y2="11"/><line x1="14" y1="15" x2="16" y2="15"/></svg></span>
+                        <span class="icon-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+                        <span class="btn-label">Calculate results</span>
+                    </button>
                 </div>
 
-                <!-- Print Reference Image Wrapper (Positioned by flex order on print) -->
                 <div class="print-guide-wrapper print-only">
                     <h2>Reference Dimensions</h2>
                     <canvas id="printGuideCanvas" width="400" height="480"></canvas>
+                    <div class="diagram-caption">Generic labelled outline — defines what each measurement means</div>
+                </div>
+                <div class="print-profile-wrapper print-only">
+                    <h2>Calculated Boundary Profile</h2>
+                    <canvas id="printProfileCanvas" width="400" height="480"></canvas>
+                    <div class="diagram-caption">This batch's actual grand-average outline — grey (plan) vs orange (wearing)</div>
                 </div>
             </div>
 
-            <!-- Grand Results Data (Positioned by flex order on print) -->
             <div id="results" class="results-box">
-                <h2 style="border-bottom: none; margin-bottom: 15px; text-align: center;">Results</h2>
-                
+                <h2 style="border-bottom: none; margin-bottom: 15px; text-align: center;">Batch Results</h2>
+
                 <div class="result-row">
-                    <span class="result-label">Plan Area:</span>
+                    <span class="result-label">Plan Area
+                        <span class="info-icon" title="Footprint of the block at zero offset (the base outline).">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg>
+                        </span>
+                    </span>
                     <span class="result-value"><span id="res_bottom">0</span> mm&sup2;</span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Wearing Area:</span>
-                    <span class="result-value" style="color:var(--accent);"><span id="res_top">0</span> mm&sup2;</span>
+                    <span class="result-label">Wearing Area
+                        <span class="info-icon" title="Boundary offset inward by the mean arris width — the exposed top surface after chamfering.">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/></svg>
+                        </span>
+                    </span>
+                    <span class="result-value" style="color:var(--safety);"><span id="res_top">0</span> mm&sup2;</span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Wearing / Plan Area Ratio:</span>
+                    <span class="result-label">Wearing / Plan Area Ratio</span>
                     <span class="result-value"><span id="res_ratio">0</span></span>
                 </div>
                 <div class="result-row">
-                    <span class="result-label">Aspect Ratio (L/T):</span>
+                    <span class="result-label">Aspect Ratio (L/T)</span>
                     <span class="result-value"><span id="res_aspect">0</span></span>
                 </div>
-                <div class="result-row" style="background-color: #d1ecf1; padding: 12px; border-radius: 6px; margin-top: 10px;">
-                    <span class="result-label">Weighted Avg. Width (Flexural):</span>
-                    <span class="result-value" style="color: #0c5460;"><span id="res_weighted_width">0</span> mm</span>
+                <div class="result-row highlight">
+                    <span class="result-label">Weighted Avg. Width (Flexural)</span>
+                    <span class="result-value"><span id="res_weighted_width">0</span> mm</span>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="action-row">
-                    <button class="btn-action" onclick="printReport()">🖨️ Print Report</button>
-                    <button class="btn-action btn-export" onclick="exportCSV()">📊 Export CSV</button>
+                    <button class="btn btn-action btn-print" onclick="printReport()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="9" width="12" height="7" rx="1"/><path d="M6 9V4h12v5"/><path d="M8 16v4h8v-4"/></svg>
+                        Print Report
+                    </button>
+                    <button class="btn btn-action btn-export" onclick="exportXLSX()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg>
+                        Export to Excel
+                    </button>
                 </div>
             </div>
+
+            <div class="print-methodology print-only">
+                <strong>Method:</strong> Plan area is the block's footprint at zero offset; wearing area is the same boundary offset inward by the mean arris width (a_w), approximating the exposed top surface after the chamfer. Both are computed by numerical integration of the measured boundary. Cells shaded amber on page 1 mark a reading that differs notably from its own row's median — a prompt to double-check, not a specification failure.
+            </div>
+            <div class="print-signoff print-only">
+                <div class="signoff-item"><span class="signoff-line"></span><label>Tested By</label></div>
+                <div class="signoff-item"><span class="signoff-line"></span><label>Reviewed By</label></div>
+                <div class="signoff-item"><span class="signoff-line"></span><label>Date</label></div>
+            </div>
+            <div class="print-page-footer page2-footer print-only">I-Paver Dimensional QC Report · Page 2 of 2</div>
         </div>
 
         <!-- Visualization Section (Hidden on Print) -->
         <div class="card" id="visualization-card">
             <h2>Calculated Boundary Profile (Grand Avg)</h2>
             <canvas id="paverCanvas" width="400" height="480"></canvas>
-            <div id="canvasLabel" class="canvas-label">
-                <!-- Label text injected dynamically -->
-            </div>
+            <div id="canvasLabel" class="canvas-label"></div>
         </div>
     </div>
 </div>
@@ -474,25 +588,27 @@
         { id: 'Sq', name: 'Squareness (Sq)', r: 6 }
     ];
 
+    /* ================= Table construction ================= */
+
     function buildTables() {
         let html = '';
-        
-        // 1. Build Sample Tables (1, 2, 3)
+
         for (let s = 1; s <= 3; s++) {
             html += `<div class="grid-item item-s${s}">`;
-            html += `<h3>Sample ${s}</h3>`;
+            html += `<h3><span class="sample-dot">${s}</span> Sample ${s}</h3>`;
             html += `<table class="data-table">
                         <thead><tr>
                             <th style="width:30%">Dimension</th>
                             <th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th><th>R6</th>
                             <th>Mean</th>
                         </tr></thead><tbody>`;
-            
+
             dimensions.forEach(dim => {
-                html += `<tr><td style="text-align:left">${dim.name}</td>`;
+                html += `<tr><td>${dim.name}</td>`;
                 for (let r = 1; r <= 6; r++) {
                     if (r <= dim.r) {
-                        html += `<td><input type="number" step="any" class="val-input" data-s="${s}" data-d="${dim.id}" data-r="${r}"></td>`;
+                        const minAttr = dim.id === 'Sq' ? '' : ' min="0"';
+                        html += `<td><input type="number" step="any"${minAttr} id="cell_${s}_${dim.id}_${r}" class="val-input" data-s="${s}" data-d="${dim.id}" data-r="${r}"></td>`;
                     } else {
                         html += `<td class="disabled-cell"></td>`;
                     }
@@ -500,24 +616,22 @@
                 html += `<td class="mean-cell" id="mean_${s}_${dim.id}">-</td></tr>`;
             });
             html += `</tbody></table>`;
-            
-            // Container for individual sample results
+
             html += `<div id="res_box_s${s}" class="sample-results-box">
-                Sample ${s} &rarr; 
-                Plan Area: <span id="res_s${s}_plan">-</span> mm² | 
-                Wear Area: <span id="res_s${s}_wear">-</span> mm² | 
-                L/T Ratio: <span id="res_s${s}_asp">-</span> | 
-                W_avg: <span id="res_s${s}_wavg">-</span> mm
+                <span class="label-plain">Sample ${s} &rarr;</span>
+                Plan: <b><span id="res_s${s}_plan">-</span> mm&sup2;</b> &nbsp;|&nbsp;
+                Wear: <b><span id="res_s${s}_wear">-</span> mm&sup2;</b> &nbsp;|&nbsp;
+                L/T: <b><span id="res_s${s}_asp">-</span></b> &nbsp;|&nbsp;
+                W_avg: <b><span id="res_s${s}_wavg">-</span> mm</b>
             </div>`;
             html += `</div>`;
         }
 
-        // 2. INJECT PAGE BREAK DIV (Strictly forces page 2 on print)
+        html += `<div class="page1-footer print-page-footer print-only">I-Paver Dimensional QC Report · Page 1 of 2</div>`;
         html += `<div class="print-break print-only"></div>`;
 
-        // 3. Build Averaged Values Table
         html += `<div class="grid-item item-avg">`;
-        html += `<h3>Averaged Values</h3>`;
+        html += `<h3 style="margin-top:0;">Averaged Values</h3>`;
         html += `<table class="data-table">
                     <thead><tr>
                         <th style="width:40%">Dimension</th>
@@ -526,7 +640,7 @@
                     </tr></thead><tbody>`;
         dimensions.forEach(dim => {
             html += `<tr>
-                <td style="text-align:left">${dim.name}</td>
+                <td>${dim.name}</td>
                 <td id="grand_s1_${dim.id}">-</td>
                 <td id="grand_s2_${dim.id}">-</td>
                 <td id="grand_s3_${dim.id}">-</td>
@@ -534,7 +648,7 @@
             </tr>`;
         });
         html += `</tbody></table>`;
-        html += `</div>`; 
+        html += `</div>`;
 
         document.getElementById('tables-container').innerHTML = html;
         attachListeners();
@@ -550,20 +664,73 @@
                         inputs[index + 1].focus();
                         inputs[index + 1].select();
                     } else {
-                        calculateAll(); 
+                        calculateAll();
                     }
                 }
             });
 
-            // Reset calculate button text if data is modified
             input.addEventListener('input', () => {
-                const btn = document.querySelector('.btn-calc');
-                if (btn && btn.innerText === "Results calculated") {
-                    btn.innerText = "Calculate results";
-                }
+                const s = input.dataset.s, d = input.dataset.d;
+                const dim = dimensions.find(x => x.id === d);
+                updateRowStats(s, d, dim.r);
+                resetCalcButton();
             });
         });
     }
+
+    function resetCalcButton() {
+        const btn = document.querySelector('.btn-calc');
+        if (btn && btn.classList.contains('is-done')) {
+            btn.classList.remove('is-done');
+            btn.querySelector('.btn-label').innerText = 'Calculate results';
+        }
+    }
+
+    /* ================= Stats: mean + median-based outlier flag ================= */
+
+    function mean(arr) { return arr.reduce((a, b) => a + b, 0) / arr.length; }
+
+    function median(arr) {
+        const s = [...arr].sort((a, b) => a - b);
+        const mid = Math.floor(s.length / 2);
+        return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+    }
+
+    // Median-based rather than mean/SD-based: with only 4-6 readings, a single
+    // bad value drags the mean toward itself and inflates the SD used to judge
+    // it, so it can mask its own detection. Median stays put.
+    function getOutlierFlags(values) {
+        if (values.length < 3) return values.map(() => false);
+        const med = median(values);
+        const threshold = Math.max(0.015 * Math.abs(med), 0.08);
+        return values.map(v => Math.abs(v - med) > threshold);
+    }
+
+    function updateRowStats(s, dimId, dimR) {
+        const inputs = [];
+        for (let r = 1; r <= dimR; r++) {
+            inputs.push(document.getElementById(`cell_${s}_${dimId}_${r}`));
+        }
+        const values = [];
+        inputs.forEach(inp => { const v = parseFloat(inp.value); if (!isNaN(v)) values.push(v); });
+
+        const meanCell = document.getElementById(`mean_${s}_${dimId}`);
+        meanCell.innerText = values.length > 0 ? mean(values).toFixed(2) : '-';
+
+        const flags = getOutlierFlags(values);
+        let vi = 0;
+        inputs.forEach(inp => {
+            const val = parseFloat(inp.value);
+            if (!isNaN(val)) {
+                inp.classList.toggle('flag-outlier', flags[vi] === true);
+                vi++;
+            } else {
+                inp.classList.remove('flag-outlier');
+            }
+        });
+    }
+
+    /* ================= Demo data / reset ================= */
 
     function populateMockData() {
         const mockData = {
@@ -576,20 +743,55 @@
             dimensions.forEach(dim => {
                 let vals = mockData[s][dim.id];
                 for (let r = 1; r <= vals.length; r++) {
-                    const el = document.querySelector(`input[data-s="${s}"][data-d="${dim.id}"][data-r="${r}"]`);
+                    const el = document.getElementById(`cell_${s}_${dim.id}_${r}`);
                     if (el) el.value = vals[r - 1];
                 }
             });
         }
     }
 
-    // Initialize the application
-    window.onload = function() {
-        buildTables();
+    function loadDemoData() {
         populateMockData();
-        drawGuide('paverCanvas');
-        drawGuide('printGuideCanvas');
-    };
+        dimensions.forEach(dim => {
+            for (let s = 1; s <= 3; s++) updateRowStats(s, dim.id, dim.r);
+        });
+        resetCalcButton();
+        if (!document.getElementById('sample_name').value) document.getElementById('sample_name').value = 'Batch_2026_M1';
+    }
+
+    function clearAllData() {
+        document.querySelectorAll('.val-input').forEach(inp => { inp.value = ''; inp.classList.remove('flag-outlier'); });
+        dimensions.forEach(dim => {
+            for (let s = 1; s <= 3; s++) {
+                document.getElementById(`mean_${s}_${dim.id}`).innerText = '-';
+                document.getElementById(`grand_s${s}_${dim.id}`).innerText = '-';
+            }
+            document.getElementById(`grand_avg_${dim.id}`).innerText = '-';
+        });
+        for (let s = 1; s <= 3; s++) document.getElementById(`res_box_s${s}`).style.display = 'none';
+        document.getElementById('results').style.display = 'none';
+        document.getElementById('error-box').style.display = 'none';
+        drawPlaceholder('paverCanvas', 'Enter measurements and calculate to see the batch profile.');
+        drawPlaceholder('printProfileCanvas', 'Run "Calculate results" to generate this diagram.');
+        document.getElementById('canvasLabel').innerText = '';
+        resetCalcButton();
+    }
+
+    /* ================= Date helpers ================= */
+
+    function todayISO() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function formatDateDisplay(iso) {
+        if (!iso) return '—';
+        const [y, m, d] = iso.split('-').map(Number);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return `${d} ${months[m - 1]} ${y}`;
+    }
+
+    /* ================= Geometry engine (unchanged core math) ================= */
 
     function integrateLinear(m, c, yA, yB) {
         const F = (y) => (m * y * y / 2) + (c * y);
@@ -607,8 +809,8 @@
         const m_xy = dx / dy;
 
         const len = Math.sqrt(dx * dx + dy * dy);
-        const nx = -dy / len; 
-        const ny = dx / len;  
+        const nx = -dy / len;
+        const ny = dx / len;
 
         const Sx = x1 + d * nx;
         const Sy = y1 + d * ny;
@@ -634,6 +836,17 @@
         return { area: quadrantArea * 4, pts };
     }
 
+    function buildFullPolygon(quadPts) {
+        let fullPts = [];
+        for (let i = 1; i < quadPts.length; i++) fullPts.push({ x: quadPts[i].x, y: quadPts[i].y });
+        for (let i = quadPts.length - 2; i >= 1; i--) fullPts.push({ x: -quadPts[i].x, y: quadPts[i].y });
+        for (let i = 1; i < quadPts.length; i++) fullPts.push({ x: -quadPts[i].x, y: -quadPts[i].y });
+        for (let i = quadPts.length - 2; i >= 1; i--) fullPts.push({ x: quadPts[i].x, y: -quadPts[i].y });
+        return fullPts;
+    }
+
+    /* ================= Main calculation ================= */
+
     function calculateAll() {
         const errBox = document.getElementById('error-box');
         errBox.style.display = 'none';
@@ -641,42 +854,49 @@
         let sampleData = { 1: {}, 2: {}, 3: {} };
         let grandData = {};
 
-        // 1. Calculate Row Means
         dimensions.forEach(dim => {
             let gSum = 0, gCount = 0;
             for (let s = 1; s <= 3; s++) {
-                let sum = 0, count = 0;
+                let sum = 0, count = 0, vals = [];
                 for (let r = 1; r <= dim.r; r++) {
-                    const input = document.querySelector(`input[data-s="${s}"][data-d="${dim.id}"][data-r="${r}"]`);
+                    const input = document.getElementById(`cell_${s}_${dim.id}_${r}`);
                     const val = parseFloat(input.value);
-                    if (!isNaN(val)) { sum += val; count++; }
+                    if (!isNaN(val)) { sum += val; count++; vals.push(val); }
                 }
-                const mean = count > 0 ? sum / count : NaN;
-                sampleData[s][dim.id] = mean;
-                
-                document.getElementById(`mean_${s}_${dim.id}`).innerText = !isNaN(mean) ? mean.toFixed(2) : '-';
-                document.getElementById(`grand_s${s}_${dim.id}`).innerText = !isNaN(mean) ? mean.toFixed(2) : '-';
+                const rowMean = count > 0 ? sum / count : NaN;
+                sampleData[s][dim.id] = rowMean;
 
-                if (!isNaN(mean)) { gSum += mean; gCount++; }
+                document.getElementById(`mean_${s}_${dim.id}`).innerText = !isNaN(rowMean) ? rowMean.toFixed(2) : '-';
+                document.getElementById(`grand_s${s}_${dim.id}`).innerText = !isNaN(rowMean) ? rowMean.toFixed(2) : '-';
+
+                const flags = getOutlierFlags(vals);
+                let vi = 0;
+                for (let r = 1; r <= dim.r; r++) {
+                    const input = document.getElementById(`cell_${s}_${dim.id}_${r}`);
+                    const val = parseFloat(input.value);
+                    if (!isNaN(val)) { input.classList.toggle('flag-outlier', flags[vi] === true); vi++; }
+                    else { input.classList.remove('flag-outlier'); }
+                }
+
+                if (!isNaN(rowMean)) { gSum += rowMean; gCount++; }
             }
             const grandAvg = gCount > 0 ? gSum / gCount : NaN;
             grandData[dim.id] = grandAvg;
             document.getElementById(`grand_avg_${dim.id}`).innerText = !isNaN(grandAvg) ? grandAvg.toFixed(2) : '-';
         });
 
-        // 2. Process Individual Samples
         for (let s = 1; s <= 3; s++) {
             const p = sampleData[s];
             const box = document.getElementById(`res_box_s${s}`);
-            
+
             if (!isNaN(p.L) && !isNaN(p.W) && !isNaN(p.w) && !isNaN(p.hf) && !isNaN(p.hw) && p.L > 0) {
                 if (p.W <= p.w || (2 * p.hf) + p.hw >= p.L) {
-                    box.style.display = 'none'; continue; 
+                    box.style.display = 'none'; continue;
                 }
 
                 const bArea = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, 0).area;
                 const tArea = integrateQuadrantArea(p.L, p.W, p.w, p.hf, p.hw, p.aw || 0).area;
-                
+
                 const Ws = p.w + ((p.W - p.w) / 2);
                 const Ls = p.L - p.hw - (2 * p.hf);
                 const wWidth = ((2 * p.hf * p.W) + (p.hw * p.w) + (Ws * Ls)) / p.L;
@@ -692,51 +912,121 @@
             }
         }
 
-        // 3. Process Grand Averages
         const g = grandData;
         if (isNaN(g.L) || isNaN(g.W) || isNaN(g.w) || isNaN(g.hf) || isNaN(g.hw)) {
-            errBox.innerText = "Please provide enough valid measurements to calculate grand averages.";
-            errBox.style.display = 'block';
+            document.getElementById('error-text').innerText = 'Please provide enough valid measurements to calculate grand averages.';
+            errBox.style.display = 'flex';
             return;
         }
         if (g.W <= g.w || (2 * g.hf) + g.hw >= g.L) {
-            errBox.innerText = "Error: Invalid Grand Averages. Higher Width must > Lower Width, and Length must > (2*hf + hw).";
-            errBox.style.display = 'block';
+            document.getElementById('error-text').innerText = 'Error: Invalid Grand Averages. Higher Width must exceed Lower Width, and Length must exceed (2×h_f + h_w).';
+            errBox.style.display = 'flex';
             return;
         }
 
         const gBottom = integrateQuadrantArea(g.L, g.W, g.w, g.hf, g.hw, 0);
         const gTop = integrateQuadrantArea(g.L, g.W, g.w, g.hf, g.hw, g.aw || 0);
-        
+
         const gRatio = gTop.area / gBottom.area;
         const gAspect = g.L / g.T;
         const gWs = g.w + ((g.W - g.w) / 2);
         const gLs = g.L - g.hw - (2 * g.hf);
         const gWWidth = ((2 * g.hf * g.W) + (g.hw * g.w) + (gWs * gLs)) / g.L;
 
-        // Display
-        document.getElementById('res_bottom').innerText = gBottom.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('res_top').innerText = gTop.area.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        document.getElementById('res_ratio').innerText = gRatio.toLocaleString('en-US', {minimumFractionDigits: 3, maximumFractionDigits: 3});
-        document.getElementById('res_aspect').innerText = !isNaN(gAspect) ? gAspect.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '-';
-        document.getElementById('res_weighted_width').innerText = gWWidth.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        
+        document.getElementById('res_bottom').innerText = gBottom.area.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('res_top').innerText = gTop.area.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        document.getElementById('res_ratio').innerText = gRatio.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 3 });
+        document.getElementById('res_aspect').innerText = !isNaN(gAspect) ? gAspect.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-';
+        document.getElementById('res_weighted_width').innerText = gWWidth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
         document.getElementById('results').style.display = 'block';
 
-        // Update Canvas & Button Text
-        drawPaver(gBottom.pts, gTop.pts, g.L, g.W);
-        document.getElementById('canvasLabel').innerHTML = `<span style="color:#bdc3c7; font-weight:bold;">Grey:</span> Plan Area &nbsp;|&nbsp; <span style="color:#e74c3c; font-weight:bold;">Red:</span> Wearing Area`;
-        
-        document.querySelector('.btn-calc').innerText = "Results calculated";
+        drawPaver('paverCanvas', gBottom.pts, gTop.pts, g.L, g.W);
+        drawPaver('printProfileCanvas', gBottom.pts, gTop.pts, g.L, g.W);
+        document.getElementById('canvasLabel').innerHTML = `<span style="color:var(--border-strong); font-weight:700;">Grey:</span> Plan Area &nbsp;|&nbsp; <span style="color:var(--safety); font-weight:700;">Orange:</span> Wearing Area`;
+
+        const btn = document.querySelector('.btn-calc');
+        btn.classList.add('is-done');
+        btn.querySelector('.btn-label').innerText = 'Results calculated';
     }
 
-    function buildFullPolygon(quadPts) {
-        let fullPts = [];
-        for(let i=1; i<quadPts.length; i++) fullPts.push({x: quadPts[i].x, y: quadPts[i].y});
-        for(let i=quadPts.length-2; i>=1; i--) fullPts.push({x: -quadPts[i].x, y: quadPts[i].y});
-        for(let i=1; i<quadPts.length; i++) fullPts.push({x: -quadPts[i].x, y: -quadPts[i].y});
-        for(let i=quadPts.length-2; i>=1; i--) fullPts.push({x: quadPts[i].x, y: -quadPts[i].y});
-        return fullPts;
+    /* ================= Canvas drawing ================= */
+
+    function drawGridBackdrop(ctx, w, h, step) {
+        ctx.save();
+        ctx.strokeStyle = '#e3ebf1';
+        ctx.lineWidth = 1;
+        for (let x = 0; x <= w; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 0; y <= h; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+        ctx.restore();
+    }
+
+    function drawArrowhead(ctx, tipX, tipY, dirX, dirY, size, color) {
+        const perpX = -dirY, perpY = dirX;
+        const backX = tipX - dirX * size, backY = tipY - dirY * size;
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(backX + perpX * size * 0.42, backY + perpY * size * 0.42);
+        ctx.lineTo(backX - perpX * size * 0.42, backY - perpY * size * 0.42);
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
+    function drawDimensionLine(ctx, x1, y1, x2, y2, label, textOffX, textOffY, color) {
+        color = color || '#24486b';
+        const dx = x2 - x1, dy = y2 - y1;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        const ux = dx / len, uy = dy / len;
+
+        ctx.strokeStyle = color; ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        drawArrowhead(ctx, x1, y1, -ux, -uy, 7, color);
+        drawArrowhead(ctx, x2, y2, ux, uy, 7, color);
+
+        const tx = (x1 + x2) / 2 + textOffX, ty = (y1 + y2) / 2 + textOffY;
+        ctx.font = '600 13px "IBM Plex Mono", monospace';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const tw = ctx.measureText(label).width;
+        ctx.fillStyle = 'rgba(255,255,255,0.94)';
+        ctx.fillRect(tx - tw / 2 - 4, ty - 9, tw + 8, 18);
+        ctx.fillStyle = color;
+        ctx.fillText(label, tx, ty);
+    }
+
+    function drawExtensionLine(ctx, x1, y1, x2, y2) {
+        ctx.save();
+        ctx.strokeStyle = '#9fb4c4';
+        ctx.setLineDash([2, 3]);
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.restore();
+    }
+
+    function drawPlaceholder(canvasId, message) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawGridBackdrop(ctx, canvas.width, canvas.height, 24);
+        ctx.font = '500 14px "IBM Plex Sans", sans-serif';
+        ctx.fillStyle = '#8a95a1';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const maxWidth = canvas.width - 60;
+        wrapText(ctx, message, canvas.width / 2, canvas.height / 2, maxWidth, 20);
+    }
+
+    function wrapText(ctx, text, cx, cy, maxWidth, lineHeight) {
+        const words = text.split(' ');
+        let lines = [], line = '';
+        words.forEach(word => {
+            const test = line ? line + ' ' + word : word;
+            if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word; }
+            else line = test;
+        });
+        if (line) lines.push(line);
+        const startY = cy - ((lines.length - 1) * lineHeight) / 2;
+        lines.forEach((l, i) => ctx.fillText(l, cx, startY + i * lineHeight));
     }
 
     function drawGuide(canvasId) {
@@ -744,10 +1034,11 @@
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawGridBackdrop(ctx, canvas.width, canvas.height, 24);
 
         const gL = 200, gW = 160, gw = 100, ghf = 40, ghw = 60;
-        const padX = 140, padY = 100;
-        const scale = Math.min((canvas.width - padX) / gW, (canvas.height - padY) / gL); 
+        const padX = 150, padY = 110;
+        const scale = Math.min((canvas.width - padX) / gW, (canvas.height - padY) / gL);
         const cx = canvas.width / 2, cy = canvas.height / 2;
 
         const bottomData = integrateQuadrantArea(gL, gW, gw, ghf, ghw, 0);
@@ -755,150 +1046,238 @@
 
         ctx.beginPath();
         ctx.moveTo(cx + pts[0].x * scale, cy - pts[0].y * scale);
-        for(let i=1; i<pts.length; i++) ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
         ctx.closePath();
-        ctx.fillStyle = '#f8f9fa'; ctx.fill();
-        ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#f4f7f9'; ctx.fill();
+        ctx.strokeStyle = '#24486b'; ctx.lineWidth = 2; ctx.stroke();
 
-        function drawDim(x1, y1, x2, y2, label, offset, isVertical) {
-            ctx.beginPath(); ctx.strokeStyle = '#7f8c8d'; ctx.lineWidth = 1;
-            ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-            const tick = 5; ctx.beginPath();
-            if (isVertical) {
-                ctx.moveTo(x1 - tick, y1); ctx.lineTo(x1 + tick, y1);
-                ctx.moveTo(x2 - tick, y2); ctx.lineTo(x2 + tick, y2);
-            } else {
-                ctx.moveTo(x1, y1 - tick); ctx.lineTo(x1, y1 + tick);
-                ctx.moveTo(x2, y2 - tick); ctx.lineTo(x2, y2 + tick);
-            }
-            ctx.stroke();
-            ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            const tx = (x1 + x2) / 2 + (isVertical ? offset : 0), ty = (y1 + y2) / 2 + (isVertical ? 0 : offset);
-            const textWidth = ctx.measureText(label).width;
-            ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fillRect(tx - textWidth/2 - 4, ty - 10, textWidth + 8, 20);
-            ctx.fillStyle = '#c0392b'; ctx.fillText(label, tx, ty);
-        }
+        // Extension lines from shape corners out to dimension lines
+        drawExtensionLine(ctx, cx - gW / 2 * scale, cy - gL / 2 * scale, cx - gW / 2 * scale - 44, cy - gL / 2 * scale);
+        drawExtensionLine(ctx, cx - gW / 2 * scale, cy + gL / 2 * scale, cx - gW / 2 * scale - 44, cy + gL / 2 * scale);
+        drawExtensionLine(ctx, cx - gW / 2 * scale, cy - gL / 2 * scale, cx - gW / 2 * scale, cy - gL / 2 * scale - 39);
+        drawExtensionLine(ctx, cx + gW / 2 * scale, cy - gL / 2 * scale, cx + gW / 2 * scale, cy - gL / 2 * scale - 39);
 
-        drawDim(cx - gW/2*scale - 40, cy - gL/2*scale, cx - gW/2*scale - 40, cy + gL/2*scale, 'L', -15, true); 
-        drawDim(cx - gW/2*scale, cy - gL/2*scale - 35, cx + gW/2*scale, cy - gL/2*scale - 35, 'W', -15, false); 
-        drawDim(cx - gw/2*scale, cy, cx + gw/2*scale, cy, 'w', -15, false); 
-        drawDim(cx + gW/2*scale + 40, cy - gL/2*scale, cx + gW/2*scale + 40, cy - gL/2*scale + ghf*scale, 'h_f', 15, true); 
-        drawDim(cx + gw/2*scale + 30, cy - ghw/2*scale, cx + gw/2*scale + 30, cy + ghw/2*scale, 'h_w', 15, true); 
+        drawDimensionLine(ctx, cx - gW / 2 * scale - 40, cy - gL / 2 * scale, cx - gW / 2 * scale - 40, cy + gL / 2 * scale, 'L', -18, 0, '#24486b');
+        drawDimensionLine(ctx, cx - gW / 2 * scale, cy - gL / 2 * scale - 35, cx + gW / 2 * scale, cy - gL / 2 * scale - 35, 'W', 0, -16, '#24486b');
+        drawDimensionLine(ctx, cx - gw / 2 * scale, cy, cx + gw / 2 * scale, cy, 'w', 0, -16, '#24486b');
+        drawDimensionLine(ctx, cx + gW / 2 * scale + 42, cy - gL / 2 * scale, cx + gW / 2 * scale + 42, cy - gL / 2 * scale + ghf * scale, 'h_f', 20, 0, '#d9540a');
+        drawDimensionLine(ctx, cx + gw / 2 * scale + 32, cy - ghw / 2 * scale, cx + gw / 2 * scale + 32, cy + ghw / 2 * scale, 'h_w', 20, 0, '#d9540a');
 
         if (canvasId === 'paverCanvas') {
-            document.getElementById('canvasLabel').innerHTML = `<span style="color:#c0392b; font-weight:bold;">Guide:</span> Dimensional Mapping`;
+            document.getElementById('canvasLabel').innerHTML = `<span style="color:#24486b; font-weight:700;">Guide:</span> dimensional mapping — enter data and calculate to see this batch's real profile`;
         }
     }
 
-    function drawPaver(bottomQuad, topQuad, maxL, maxW) {
-        const canvas = document.getElementById('paverCanvas');
+    function drawPaver(canvasId, bottomQuad, topQuad, maxL, maxW) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        const scale = Math.min((canvas.width - 40) / maxW, (canvas.height - 40) / maxL);
+        drawGridBackdrop(ctx, canvas.width, canvas.height, 24);
+
+        const scale = Math.min((canvas.width - 70) / maxW, (canvas.height - 70) / maxL);
         const cx = canvas.width / 2, cy = canvas.height / 2;
         const bottomPts = buildFullPolygon(bottomQuad), topPts = buildFullPolygon(topQuad);
 
-        function drawPath(pts, fillColor, strokeColor, lineWidth = 1) {
+        function drawPath(pts, fillColor, strokeColor, lineWidth) {
             ctx.beginPath();
             ctx.moveTo(cx + pts[0].x * scale, cy - pts[0].y * scale);
-            for(let i=1; i<pts.length; i++) ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
+            for (let i = 1; i < pts.length; i++) ctx.lineTo(cx + pts[i].x * scale, cy - pts[i].y * scale);
             ctx.closePath();
-            if(fillColor) { ctx.fillStyle = fillColor; ctx.fill(); }
-            if(strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); }
+            if (fillColor) { ctx.fillStyle = fillColor; ctx.fill(); }
+            if (strokeColor) { ctx.strokeStyle = strokeColor; ctx.lineWidth = lineWidth; ctx.stroke(); }
         }
 
-        drawPath(bottomPts, '#e2e6e9', '#bdc3c7', 2);
-        drawPath(topPts, 'rgba(231, 76, 60, 0.1)', '#e74c3c', 2);
+        drawPath(bottomPts, '#e7ebee', '#8896a3', 2);
+        drawPath(topPts, 'rgba(217, 84, 10, 0.12)', '#d9540a', 2);
 
-        ctx.beginPath(); ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 1;
-        for(let i=0; i<bottomPts.length; i++) {
+        ctx.beginPath(); ctx.strokeStyle = '#c3ccd6'; ctx.lineWidth = 1;
+        for (let i = 0; i < bottomPts.length; i++) {
             ctx.moveTo(cx + bottomPts[i].x * scale, cy - bottomPts[i].y * scale);
             ctx.lineTo(cx + topPts[i].x * scale, cy - topPts[i].y * scale);
         }
         ctx.stroke();
+
+        // Callout labelling the plan->wear offset as the arris width
+        const calloutIdx = 1;
+        const bx = cx + bottomPts[calloutIdx].x * scale, by = cy - bottomPts[calloutIdx].y * scale;
+        const tx2 = cx + topPts[calloutIdx].x * scale, ty2 = cy - topPts[calloutIdx].y * scale;
+        const midx = (bx + tx2) / 2, midy = (by + ty2) / 2;
+        ctx.font = '600 11px "IBM Plex Mono", monospace';
+        ctx.fillStyle = 'rgba(255,255,255,0.94)';
+        const label = 'a_w offset';
+        const tw = ctx.measureText(label).width;
+        ctx.fillRect(midx + 6, midy - 8, tw + 8, 16);
+        ctx.fillStyle = '#d9540a';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(label, midx + 10, midy);
     }
+
+    /* ================= Print ================= */
+
+    window.addEventListener('afterprint', () => {
+        document.title = 'I-Paver (Dumble Shaped) — Dimensional QC Report Tool';
+    });
 
     function printReport() {
-        const sampleNameInput = document.getElementById('sample_name').value.trim();
-        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Batch';
-        
-        // Auto-generate current date based on standard Indian timing format
-        const dateStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
-        
-        const originalTitle = document.title;
+        const sampleName = document.getElementById('sample_name').value.trim() || 'Unknown_Batch';
+        const testedBy = document.getElementById('tested_by').value.trim() || '—';
+        const testDateVal = document.getElementById('test_date').value;
+        const testDateDisplay = testDateVal ? formatDateDisplay(testDateVal) : '—';
+        const generatedStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+
         document.title = `${sampleName}_area_report`;
-        
-        // Populate the print headers directly before printing
-        document.getElementById('print_sample_name_header').innerText = `Batch / Sample ID: ${sampleName}`;
-        document.getElementById('print_date').innerText = `Generated on: ${dateStr}`;
-        
+        document.getElementById('print_sample_name_header').innerText = sampleName;
+        document.getElementById('print_tested_by').innerText = testedBy;
+        document.getElementById('print_test_date').innerText = testDateDisplay;
+        document.getElementById('print_generated').innerText = generatedStr;
+
         window.print();
-        document.title = originalTitle;
     }
 
-    function exportCSV() {
-        const sampleNameInput = document.getElementById('sample_name').value.trim();
-        const sampleName = sampleNameInput ? sampleNameInput : 'Unknown_Batch';
+    /* ================= Excel export (SheetJS) ================= */
 
-        let csv = "I-Paver Area Calculation Report\n";
-        csv += `Batch/Sample ID,${sampleName}\n\n`;
-        
-        // Raw Data Block
-        csv += "Raw Measurements & Sample Means\n";
-        csv += "Sample,Dimension,R1,R2,R3,R4,R5,R6,Mean\n";
-        for(let s=1; s<=3; s++) {
+    function readCellNumOrDash(id) {
+        const text = document.getElementById(id).innerText.trim();
+        if (text === '-' || text === '') return '-';
+        const num = parseFloat(text.replace(/,/g, ''));
+        return isNaN(num) ? '-' : num;
+    }
+
+    function setNum(ws, r, c, value, fmt) {
+        if (value === '-' || value === undefined || value === null) return;
+        const ref = XLSX.utils.encode_cell({ r, c });
+        ws[ref] = { t: 'n', v: value, z: fmt || '0.00' };
+    }
+
+    function exportXLSX() {
+        if (typeof XLSX === 'undefined') {
+            alert('The export library failed to load (no internet connection?). Please check your connection and try again.');
+            return;
+        }
+
+        const sampleName = document.getElementById('sample_name').value.trim() || 'Unknown_Batch';
+        const testedBy = document.getElementById('tested_by').value.trim() || '-';
+        const testDateVal = document.getElementById('test_date').value;
+        const testDateDisplay = testDateVal ? formatDateDisplay(testDateVal) : '-';
+        const generatedStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' });
+
+        const grandResults = {
+            plan: readCellNumOrDash('res_bottom'),
+            wear: readCellNumOrDash('res_top'),
+            ratio: readCellNumOrDash('res_ratio'),
+            aspect: readCellNumOrDash('res_aspect'),
+            wavg: readCellNumOrDash('res_weighted_width')
+        };
+
+        const wb = XLSX.utils.book_new();
+
+        /* ---- Sheet 1: Summary ---- */
+        const sumAOA = [
+            ['I-Paver (Dumble Shaped) \u2014 Dimensional QC Report'],
+            [],
+            ['Batch / Sample ID', sampleName],
+            ['Tested By', testedBy],
+            ['Test Date', testDateDisplay],
+            ['Report Generated', generatedStr],
+            [],
+            ['Grand Batch Results'],
+            ['Metric', 'Value', 'Unit'],
+            ['Plan Area', grandResults.plan, 'mm2'],
+            ['Wearing Area', grandResults.wear, 'mm2'],
+            ['Wearing / Plan Area Ratio', grandResults.ratio, ''],
+            ['Aspect Ratio (L/T)', grandResults.aspect, ''],
+            ['Weighted Avg. Width (Flexural)', grandResults.wavg, 'mm']
+        ];
+        const wsSummary = XLSX.utils.aoa_to_sheet(sumAOA);
+        wsSummary['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 2 } },
+            { s: { r: 7, c: 0 }, e: { r: 7, c: 2 } }
+        ];
+        wsSummary['!cols'] = [{ wch: 30 }, { wch: 18 }, { wch: 8 }];
+        setNum(wsSummary, 9, 1, grandResults.plan, '0.00');
+        setNum(wsSummary, 10, 1, grandResults.wear, '0.00');
+        setNum(wsSummary, 11, 1, grandResults.ratio, '0.000');
+        setNum(wsSummary, 12, 1, grandResults.aspect, '0.00');
+        setNum(wsSummary, 13, 1, grandResults.wavg, '0.00');
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+        /* ---- Sheet 2: Measurements ---- */
+        let measAOA = [];
+        let numericCells = [];
+        for (let s = 1; s <= 3; s++) {
+            measAOA.push([`Sample ${s}`]);
+            measAOA.push(['Dimension', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'Mean']);
             dimensions.forEach(dim => {
-                let row = `${s},${dim.name.replace(/,/g, '')}`;
-                for(let r=1; r<=6; r++) {
-                    if(r <= dim.r) {
-                        let val = document.querySelector(`input[data-s="${s}"][data-d="${dim.id}"][data-r="${r}"]`).value;
-                        row += `,${val}`;
-                    } else { row += `,`; }
+                const rowVals = [dim.name];
+                const r = measAOA.length;
+                for (let i = 1; i <= 6; i++) {
+                    if (i <= dim.r) {
+                        const inp = document.getElementById(`cell_${s}_${dim.id}_${i}`);
+                        const v = parseFloat(inp.value);
+                        if (!isNaN(v)) { rowVals.push(v); numericCells.push({ r, c: i, v }); }
+                        else rowVals.push('');
+                    } else {
+                        rowVals.push('');
+                    }
                 }
-                let mean = document.getElementById(`mean_${s}_${dim.id}`).innerText;
-                csv += `${row},${mean}\n`;
+                const meanVal = readCellNumOrDash(`mean_${s}_${dim.id}`);
+                rowVals.push(meanVal);
+                if (meanVal !== '-') numericCells.push({ r, c: 7, v: meanVal });
+                measAOA.push(rowVals);
             });
+            const planV = readCellNumOrDash(`res_s${s}_plan`);
+            const wearV = readCellNumOrDash(`res_s${s}_wear`);
+            const aspV = readCellNumOrDash(`res_s${s}_asp`);
+            const wavgV = readCellNumOrDash(`res_s${s}_wavg`);
+            if (planV !== '-' || wearV !== '-') {
+                measAOA.push([]);
+                const r = measAOA.length;
+                measAOA.push(['Sample results', 'Plan Area (mm2)', planV, 'Wear Area (mm2)', wearV, 'L/T', aspV, 'Weighted Width (mm)', wavgV]);
+                if (planV !== '-') numericCells.push({ r, c: 2, v: planV });
+                if (wearV !== '-') numericCells.push({ r, c: 4, v: wearV });
+                if (aspV !== '-') numericCells.push({ r, c: 6, v: aspV });
+                if (wavgV !== '-') numericCells.push({ r, c: 8, v: wavgV });
+            }
+            measAOA.push([]);
         }
+        const wsMeas = XLSX.utils.aoa_to_sheet(measAOA);
+        numericCells.forEach(({ r, c, v }) => setNum(wsMeas, r, c, v, '0.00'));
+        wsMeas['!cols'] = [{ wch: 28 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 16 }];
+        XLSX.utils.book_append_sheet(wb, wsMeas, 'Measurements');
 
-        // Grand Averages Block
-        csv += "\nBatch Grand Averages\nDimension,S1 Mean,S2 Mean,S3 Mean,Grand Avg\n";
+        /* ---- Sheet 3: Averages ---- */
+        const avgAOA = [['Dimension', 'S1 Mean', 'S2 Mean', 'S3 Mean', 'Grand Average']];
+        const avgNumeric = [];
         dimensions.forEach(dim => {
-            let s1 = document.getElementById(`grand_s1_${dim.id}`).innerText;
-            let s2 = document.getElementById(`grand_s2_${dim.id}`).innerText;
-            let s3 = document.getElementById(`grand_s3_${dim.id}`).innerText;
-            let g = document.getElementById(`grand_avg_${dim.id}`).innerText;
-            csv += `${dim.name.replace(/,/g, '')},${s1},${s2},${s3},${g}\n`;
+            const r = avgAOA.length;
+            const s1 = readCellNumOrDash(`grand_s1_${dim.id}`);
+            const s2 = readCellNumOrDash(`grand_s2_${dim.id}`);
+            const s3 = readCellNumOrDash(`grand_s3_${dim.id}`);
+            const ga = readCellNumOrDash(`grand_avg_${dim.id}`);
+            avgAOA.push([dim.name, s1, s2, s3, ga]);
+            [[1, s1], [2, s2], [3, s3], [4, ga]].forEach(([c, v]) => { if (v !== '-') avgNumeric.push({ r, c, v }); });
         });
+        const wsAvg = XLSX.utils.aoa_to_sheet(avgAOA);
+        avgNumeric.forEach(({ r, c, v }) => setNum(wsAvg, r, c, v, '0.00'));
+        wsAvg['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 14 }];
+        XLSX.utils.book_append_sheet(wb, wsAvg, 'Averages');
 
-        // Individual Results Block
-        csv += "\nIndividual Sample Results\nSample,Plan Area (mm^2),Wearing Area (mm^2),Aspect Ratio (L/T),Weighted Avg Width (mm)\n";
-        for(let s=1; s<=3; s++) {
-            let p = document.getElementById(`res_s${s}_plan`) ? document.getElementById(`res_s${s}_plan`).innerText : '-';
-            let w = document.getElementById(`res_s${s}_wear`) ? document.getElementById(`res_s${s}_wear`).innerText : '-';
-            let a = document.getElementById(`res_s${s}_asp`) ? document.getElementById(`res_s${s}_asp`).innerText : '-';
-            let wa = document.getElementById(`res_s${s}_wavg`) ? document.getElementById(`res_s${s}_wavg`).innerText : '-';
-            csv += `Sample ${s},${p.replace(/,/g, '')},${w.replace(/,/g, '')},${a},${wa.replace(/,/g, '')}\n`;
-        }
-
-        // Grand Results Block
-        csv += "\nGrand Batch Results\nMetric,Value\n";
-        csv += `Plan Area (mm^2),${document.getElementById('res_bottom').innerText.replace(/,/g, '')}\n`;
-        csv += `Wearing Area (mm^2),${document.getElementById('res_top').innerText.replace(/,/g, '')}\n`;
-        csv += `Wearing / Plan Area Ratio,${document.getElementById('res_ratio').innerText}\n`;
-        csv += `Aspect Ratio (L/T),${document.getElementById('res_aspect').innerText}\n`;
-        csv += `Weighted Avg. Width (mm),${document.getElementById('res_weighted_width').innerText.replace(/,/g, '')}\n`;
-
-        // Safely encode CSV for download
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", `${sampleName}_area_report.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        XLSX.writeFile(wb, `${sampleName}_area_report.xlsx`);
     }
+
+    /* ================= Init ================= */
+
+    window.onload = function () {
+        buildTables();
+        document.getElementById('test_date').value = todayISO();
+        drawGuide('paverCanvas');
+        drawGuide('printGuideCanvas');
+        drawPlaceholder('printProfileCanvas', 'Run "Calculate results" to generate this diagram.');
+        document.getElementById('canvasLabel').innerHTML = `<span style="color:#24486b; font-weight:700;">Guide:</span> dimensional mapping — enter data and calculate to see this batch's real profile`;
+        const first = document.querySelector('.val-input');
+        if (first) first.focus();
+    };
 </script>
 
 </body>
